@@ -1,0 +1,168 @@
+<div class="relative min-h-screen bg-[#002487]">
+
+  <!-- Sidebar -->
+<aside class="fixed left-0 top-0 h-screen w-64 bg-[#002487] p-5 flex flex-col justify-between shadow-2xl shadow-white/20 rounded-2xl">
+    <div class="flex flex-col items-center">
+      <img src="assets/image5.png" alt="Logo" class="h-12 mb-8 mx-auto">
+
+      <button (click)="openNewProjectModal()"
+        class="bg-purple-600 text-white w-full py-2 rounded-lg mb-6 hover:bg-purple-700">
+        + Create Project
+      </button>
+
+      <ul class="space-y-4 text-white text-sm">
+        <li class="font-semibold text-white">Dashboard</li>
+        <li>Editor</li>
+        <li>Leads</li>
+        <li>Settings</li>
+        <li>Preview</li>
+      </ul>
+    </div>
+
+    <div class="bg-purple-100 p-4 rounded-lg text-center">
+      <p class="text-sm">Upgrade to Pro</p>
+      <button class="bg-purple-600 text-white px-4 py-1 rounded mt-2 hover:bg-purple-700">
+        Upgrade
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="ml-64 p-8">
+
+    <!-- Top Bar -->
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h2 class="text-xl font-semibold text-white">Dashboard</h2>
+        <p class="text-sm text-gray-300">Project Management</p>
+      </div>
+
+      <div class="flex items-center gap-4 relative">
+        <span class="text-white text-xl">🔔</span>
+
+        <div class="flex items-center gap-2 cursor-pointer" (click)="toggleMenu()">
+          <div class="bg-amber-200 h-10 w-10 flex items-center justify-center rounded-full">
+            AJ
+          </div>
+          <span class="text-white">Alyssa Jones</span>
+          <span class="text-white">{{ showMenu ? '˄' : '˅' }}</span>
+        </div>
+
+        <!-- Dropdown -->
+        <div *ngIf="showMenu"
+          class="absolute right-0 top-12 w-40 bg-white shadow-lg rounded-lg overflow-hidden">
+          <button class="w-full text-left px-4 py-2 hover:bg-gray-100">Profile</button>
+          <button class="w-full text-left px-4 py-2 hover:bg-gray-100">Settings</button>
+          <button [routerLink]="['/portfolio']" class="w-full text-left px-4 py-2 hover:bg-gray-100">Portfolio</button>
+          <button (click)="logout()"
+            class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-100">
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Welcome Card -->
+    <div class="bg-purple-100 p-6 rounded-2xl flex justify-between items-center mb-6">
+      <div>
+        <h3 class="text-2xl font-bold">Welcome!</h3>
+        <p class="text-gray-600">Manage and showcase your projects</p>
+      </div>
+      <img src="https://cdn-icons-png.flaticon.com/512/1995/1995574.png" class="w-28">
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-4 gap-4 mb-8">
+      <div class="bg-yellow-400 text-white p-4 rounded-xl text-center">
+        {{ projects.length }}<br>Projects
+      </div>
+      <div class="bg-purple-500 text-white p-4 rounded-xl text-center">
+        100%<br>Editable
+      </div>
+      <div class="bg-pink-400 text-white p-4 rounded-xl text-center">
+        ∞<br>Storage
+      </div>
+      <div class="bg-indigo-400 text-white p-4 rounded-xl text-center">
+        ✓<br>Live
+      </div>
+    </div>
+
+    <!-- Projects -->
+    <div class="space-y-4">
+      <div *ngFor="let project of projects"
+        class="relative flex bg-white rounded-xl shadow-md overflow-hidden">
+
+        <img [src]="project.image" class="w-40 h-28 object-cover">
+
+        <div class="p-4 flex-1">
+          <h3 class="text-lg font-semibold">{{ project.title }}</h3>
+          <p class="text-sm text-gray-500">{{ project.tech }}</p>
+        </div>
+
+        <div class="absolute top-2 right-2 flex gap-2">
+          <button (click)="startEdit(project)"
+            class="p-2 bg-white rounded-full text-blue-600 hover:bg-gray-100">
+            ✏️
+          </button>
+          <button (click)="deleteProject(project.id || '')"
+            class="p-2 bg-white rounded-full text-red-600 hover:bg-gray-100">
+<span class="text-red-600">🗑</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+
+    <!-- Edit Modal -->
+    <div *ngIf="editingId !== null" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div class="bg-white p-8 rounded-lg w-96 shadow-xl">
+        <h2 class="text-2xl font-bold mb-6">Edit Project</h2>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold mb-2">Project Title</label>
+            <input 
+              [(ngModel)]="editProject.title" 
+              name="title"
+              type="text" 
+              placeholder="Enter project title" 
+              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500" />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-semibold mb-2">Tech Stack</label>
+            <input 
+              [(ngModel)]="editProject.tech" 
+              name="tech"
+              type="text" 
+              placeholder="e.g., Angular • TypeScript • Tailwind" 
+              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500" />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-semibold mb-2">Project Image</label>
+            <input 
+              (change)="onFileSelected($event)"
+              type="file" 
+              accept="image/*"
+              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500" />
+            <p class="text-xs text-gray-500 mt-1">Upload an image for your project</p>
+          </div>
+
+          <div class="flex gap-3 pt-4">
+            <button (click)="saveEdit()" class="flex-1 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 font-semibold">
+              Save Project
+            </button>
+            <button (click)="cancelEdit()" class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 font-semibold">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div id="project"></div>

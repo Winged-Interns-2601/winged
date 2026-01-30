@@ -1,0 +1,125 @@
+<div class="container min-h-screen flex items-center justify-center bg-cover"
+     style="background-position: left 80%">
+
+  <div class="flex items-center justify-center w-full px-4">
+
+    <!-- MAIN CARD -->
+    <div class="border-2 border-white rounded-3xl overflow-hidden
+                flex shadow-2xl w-[900px]">
+
+      <!-- LEFT IMAGE / INFO PANEL (same as login, can reuse) -->
+      <div class="container2 flex-1 p-6 text-white
+                  flex flex-col justify-between bg-transparent">
+
+        <div class="flex justify-between items-center">
+          <p class="text-sm font-semibold">Selected Works</p>
+
+          <div class="flex items-center gap-3">
+            <p class="text-sm cursor-pointer hover:underline">Login</p>
+            <button
+              class="px-4 py-1.5 text-sm font-medium
+                     border border-white/60 rounded-full
+                     hover:bg-white hover:text-black transition">
+              Join Us
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <img src="assets/image3.jpg"
+               class="w-10 h-10 rounded-full object-cover" />
+          <p>Andrew.us</p>
+        </div>
+
+      </div>
+
+      <!-- RIGHT REGISTER PANEL -->
+      <div class="bg-white flex-1 p-8 shadow-lg">
+
+        <!-- HEADER -->
+        <h2 class="text-2xl font-bold text-center text-gray-800">
+          Register
+        </h2>
+        <p class="text-sm text-center text-gray-500 mt-1">
+          Join Winged today
+        </p>
+
+        <!-- ERROR -->
+        <div *ngIf="errorMessage"
+             class="mt-4 p-3 bg-red-100 border border-red-400
+                    text-red-700 rounded">
+          {{ errorMessage }}
+        </div>
+
+        <!-- SUCCESS -->
+        <div *ngIf="successMessage"
+             class="mt-4 p-3 bg-green-100 border border-green-400
+                    text-green-700 rounded">
+          {{ successMessage }}
+        </div>
+
+        <!-- FORM -->
+        <form (ngSubmit)="register()" class="space-y-4 mt-4">
+
+          <div>
+            <label class="block text-sm font-medium text-gray-600 mb-1">
+              Username
+            </label>
+            <input
+              type="text"
+              [(ngModel)]="formData.username"
+              name="username"
+              required
+              class="w-full px-4 py-2 border rounded-lg
+                     focus:ring-2 focus:ring-green-500" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-600 mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              [(ngModel)]="formData.email"
+              name="email"
+              required
+              class="w-full px-4 py-2 border rounded-lg
+                     focus:ring-2 focus:ring-green-500" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-600 mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              [(ngModel)]="formData.password"
+              name="password"
+              required
+              class="w-full px-4 py-2 border rounded-lg
+                     focus:ring-2 focus:ring-green-500" />
+          </div>
+
+          <button
+            type="submit"
+            [disabled]="!formData.username || !formData.email || !formData.password"
+            class="w-full py-2 rounded-lg text-white font-semibold
+                   bg-green-600 hover:bg-green-700
+                   disabled:bg-gray-400 transition">
+            Register
+          </button>
+        </form>
+
+        <!-- FOOTER -->
+        <p class="text-center text-gray-600 mt-4">
+          Already have an account?
+          <button (click)="goToLogin()"
+                  class="text-green-600 font-semibold hover:underline">
+            Login here
+          </button>
+        </p>
+
+      </div>
+    </div>
+  </div>
+</div>

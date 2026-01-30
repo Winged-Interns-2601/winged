@@ -1,1 +1,191 @@
-<p>portfolio works!</p>
+  <div class=" flex-1 div2">
+    
+  <div class=" mx-auto">
+    
+
+    <div class="bg-[#002487] bg-opacity-50  rounded-lg shadow-md">
+
+      <div class="flex min-h-screen">
+
+  
+  <div class="div3 relative min-h-[500px] w-full  mx-auto  rounded-lg overflow-hidden p-10 h-149 ">
+
+  
+    <div class="relative z-10 ">
+  
+  
+      <div class="flex justify-between items-center mb-12 text-white">
+        <img src="assets/image5.png" alt="Logo" class="h-15 pl-5">
+  
+        <div class="flex items-center gap-8 text-sm font-medium">
+  
+          <p class="hover:text-red-500">Home</p>
+          <p class="hover:text-red-500">About</p>
+          <p class="hover:text-red-500">Services</p>
+          <a href="/profile" class="hover:text-red-500">Profile</a>
+          
+
+<button
+  (click)="logout()"
+  class="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 bg-white rounded-3xl">
+  Logout
+</button>
+
+  
+  
+        </div>
+  
+      </div>
+      
+  
+      <section class="grid md:grid-cols-2 gap-8 items-center py-12 text-white">
+  
+  
+<div>
+  <p class="text-sm text-orange-200 mb-2">Hey, I'm a</p>
+
+  <h1 class="text-5xl md:text-6xl font-extrabold leading-tight">
+    Creative <br> Director
+  </h1>
+
+  <!-- Decorative bars -->
+</div>
+
+
+        <div>
+          <p class="text-lg font-semibold">
+            Great design should feel invisible.
+          </p>
+          <p class="text-sm text-gray-200 mt-2 ">
+            From logo to language, I build brands that connect and convert.
+          </p>
+        </div>
+  
+      </section>
+  
+  
+    </div>
+
+
+<div class="flex justify-center items-center gap-16 mt-10 text-amber-50">
+
+  <div class="text-center">
+    <p class="font-semibold">#01</p>
+    <p class="text-sm">Brand Strategy</p>
+  </div>
+
+  <div class="text-center">
+    <p class=" font-semibold">#02</p>
+    <p class="text-sm">Brand Identity Design</p>
+  </div>
+
+  <div class="text-center">
+    <p class="font-semibold">#03</p>
+    <p class="text-sm">Packaging Design</p>
+  </div>
+
+  <div class="text-center">
+    <p class="font-semibold">#04</p>
+    <p class="text-sm">Creative Direction</p>
+  </div>
+
+</div>
+
+  </div>
+  
+
+  </div>
+
+
+<section class="bg-[#002487] text-white py-20 px-10 rounded-2xl ml-35">
+  <div class="grid md:grid-cols-2 gap-10 items-center">
+
+    <!-- Left -->
+    <div>
+      <p class="text-orange-400 uppercase text-sm mb-3 tracking-widest">
+        Behind the Designs
+      </p>
+
+      <h2 class="text-4xl md:text-5xl font-extrabold leading-tight">
+        I'm a product<br> designer focused <br> onbuilding clean, <br>intuitive interfaces
+       <br> that  solve real-world problems.
+      </h2>
+    </div>
+
+    <!-- Right -->
+    <div>
+     <div class="flex  gap-8 text-3xl text-white mt-6 mb-10">
+  <a href="https://github.com/yourusername" target="_blank"
+     class="hover:text-yellow-300 transition duration-300">
+    <i class="bi bi-github"></i>
+  </a>
+
+  <a href="https://linkedin.com/in/yourusername" target="_blank"
+     class="hover:text-blue-300 transition duration-300">
+    <i class="bi bi-linkedin"></i>
+  </a>
+
+  <a href="https://twitter.com/yourusername" target="_blank"
+     class="hover:text-sky-300 transition duration-300">
+    <i class="bi bi-twitter"></i>
+  </a>
+
+  <a href="https://instagram.com/yourusername" target="_blank"
+     class="hover:text-pink-300 transition duration-300">
+    <i class="bi bi-instagram"></i>
+  </a>
+</div>
+
+
+      <p class="text-sm text-gray-500 mb-6">
+        Let’s build something meaningful together.
+      </p>
+
+      <button
+        class="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-full font-semibold transition">
+        Get in touch →
+      </button>
+    </div>
+
+  </div>
+</section>
+
+<!-- Projects Section -->
+<section class="py-16 bg-[#002487]">
+  <div class="max-w-6xl mx-auto px-6">
+    <h2 class="text-3xl font-bold mb-8 text-center text-white">My Projects</h2>
+    
+    <!-- Projects Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div *ngFor="let project of projects"
+           class="relative h-74 rounded-xl overflow-hidden group">
+
+        <!-- Image -->
+        <img [src]="project.image" class="w-full h-full object-cover" />
+
+        <!-- Dark overlay -->
+        <div class="absolute inset-0 bg-black/40"></div>
+
+        <!-- Text -->
+        <div class="absolute bottom-4 left-4 text-white z-10">
+          <h3 class="text-lg font-semibold">{{ project.title }}</h3>
+          <p class="text-sm text-gray-200">{{ project.tech }}</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+</div>
+
+
+    <div *ngIf="!portfolio" class="text-center py-20 text-white">
+      <h2 class="text-3xl font-bold mb-4">User not found</h2>
+      <p class="text-orange-200">Please log in again</p>
+    </div>
+  </div>
+  </div>
+
+

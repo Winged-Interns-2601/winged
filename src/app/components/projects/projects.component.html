@@ -1,1 +1,81 @@
-<p>projects works!</p>
+<section class="py-16">
+  <div class="max-w-6xl mx-auto px-6">
+
+    <!-- Edit Modal -->
+    <div *ngIf="editingIndex !== null" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div class="bg-white p-6 rounded-lg w-96">
+        <h2 class="text-2xl font-bold mb-4">Edit Project</h2>
+        
+        <input 
+          [(ngModel)]="editProject.title" 
+          name="title"
+          type="text" 
+          placeholder="Project Title" 
+          class="w-full p-2 mb-4 border rounded" />
+        
+        <input 
+          [(ngModel)]="editProject.tech" 
+          name="tech"
+          type="text" 
+          placeholder="Tech Stack" 
+          class="w-full p-2 mb-4 border rounded" />
+        
+        <input 
+          (change)="onFileSelected($event)"
+          type="file" 
+          accept="image/*"
+          class="w-full p-2 mb-4 border rounded" />
+        
+        <div class="flex gap-3">
+          <button (click)="saveEdit()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex-1">
+            Save
+          </button>
+          <button (click)="cancelEdit()" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 flex-1">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Projects Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div   *ngFor="let project of projects1; let i = index"
+           class="relative h-74 rounded-xl overflow-hidden group">
+
+        <!-- Image -->
+        <img [src]="project.image" class="w-full h-full object-cover" />
+
+        <!-- Dark overlay -->
+        <div class="absolute inset-0 bg-black/40"></div>
+
+        <!-- Edit & Delete icons (top-right) -->
+        <div class="absolute top-3 right-3 flex gap-3 z-10">
+
+          <!-- Edit -->
+          <button
+            (click)="startEdit(i)"
+            class="p-2 bg-white/80 rounded-full text-blue-600 hover:bg-white transition">
+            <i class="bi bi-pencil-square"></i>
+          </button>
+
+          <!-- Delete -->
+          <button
+            (click)="deleteProject(i)"
+            class="p-2 bg-white/80 rounded-full text-red-600 hover:bg-white transition">
+            <i class="bi bi-trash"></i>
+          </button>
+
+        </div>
+
+        <!-- Text -->
+        <div class="absolute bottom-4 left-4 text-white z-10">
+          <h3 class="text-lg font-semibold">{{ project.title }}</h3>
+          <p class="text-sm text-gray-200">{{ project.tech }}</p>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+<div  id="project"></div>
