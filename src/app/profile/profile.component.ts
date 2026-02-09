@@ -2,20 +2,22 @@ import { NgFor, NgIf } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../services/auth.service';
+import { AuthService, PortfolioUser } from '../services/auth.service';
 import { IsLoggedService } from '../services/is-logged.service';
 import { ProjectsService, Project } from '../services/projects.service';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-profile',
+  standalone: true,
   imports: [NgFor, NgIf, FormsModule, RouterLink],
   templateUrl: './profile.component.html',
-  styleUrl: './profile.component.css'
+  styleUrls: ['./profile.component.css']
 })
 export class ProfileComponent implements OnInit, OnDestroy {
 
   projects: Project[] = [];
+  user: PortfolioUser | null = null;
   private subscription: Subscription | null = null;
 
   constructor(
@@ -34,6 +36,37 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.router.navigate(['/login']);
       return;
     }
+
+    const username = this.auth.getCurrentUser();
+    let backendUser = this.auth.getLoggedInUser(); // Prefer backend-stored user
+    if (backendUser && backendUser.address) {
+      // Flatten nested address fields for template compatibility
+      this.user = {
+        ...backendUser,
+        address: backendUser.address.street || '',
+        city: backendUser.address.city || '',
+        state: backendUser.address.state || '',
+        country: backendUser.address.country || '',
+        pinCode: backendUser.address.pinCode || '',
+        panNo: backendUser.panno || backendUser.panNo || ''
+      };
+    } else {
+      this.user = backendUser;
+    }
+    if (!this.user) {
+      // Fallback: try by username, then by email
+      this.user = username ? this.auth.getUserByUsername(username) : null;
+      if (!this.user) {
+        const email = this.auth.getCurrentUserEmail();
+        this.user = email ? this.auth.getUserByEmail(email) : null;
+      }
+    }
+
+    // Debug: log what we got
+    console.log('Profile user loaded:', this.user);
+    console.log('LOGGED_IN_USER from localStorage:', localStorage.getItem('LOGGED_IN_USER'));
+    console.log('CURRENT_USER_EMAIL:', localStorage.getItem('CURRENT_USER_EMAIL'));
+    console.log('PORTFOLIO_USERS keys:', Object.keys(JSON.parse(localStorage.getItem('PORTFOLIO_USERS') || '{}')));
 
     // Subscribe to projects from service
     this.subscription = this.projectsService.projects$.subscribe(projects => {
@@ -73,9 +106,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       return;
     }
 
-
     if (this.editingId !== null && this.editingId !== undefined) {
-      // Check if this is a new project (ID starts with current timestamp pattern or is temporary)
       const projects = this.projectsService.getProjects();
       const existingProject = projects.find(p => p.id === this.editingId);
       
@@ -131,6 +162,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     // Open edit dialog for new project
     this.startEdit(newProject);
     // document.getElementById('project')?.scrollIntoView({ behavior: 'smooth' });
+
+
   }
 
 

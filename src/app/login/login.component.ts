@@ -4,13 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
 import { IsLoggedService } from '../services/is-logged.service';
-import { PORTFOLIO_DATA } from '../data/portfolio-data';
+import { EmployeeService } from '../services/employee.service';
 
 @Component({
   selector: 'app-login',
+  standalone: true,
   imports: [FormsModule, RouterLink, CommonModule],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+  styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
   email: string = '';
@@ -20,7 +21,8 @@ export class LoginComponent {
   constructor(
     private auth: AuthService,
     private router: Router,
-    private isLoggedService: IsLoggedService
+    private isLoggedService: IsLoggedService,
+    private employeeService: EmployeeService
   ) {}
 
   login() {
@@ -33,20 +35,23 @@ export class LoginComponent {
 
     const email = this.email.toLowerCase().trim();
     
-    // Check if user exists
-    if (!this.auth.userExists(email)) {
-      this.errorMessage = `User with email "${this.email}" not found. Please register first!`;
-      return;
-    }
-
-    // Get user data and verify password
-    const userData = this.auth.getUserByEmail(email);
-    if (userData && userData.password === this.password) {
-      this.auth.login(userData.username);
-      this.isLoggedService.loginSuccess(userData.username);
-      this.router.navigate(['/portfolio']);
-    } else {
-      this.errorMessage = 'Invalid password!';
-    }
+    // Call Spring Boot API to get user by email
+    this.employeeService.getByEmail(email).subscribe({
+      next: (employee: any) => {
+        // Store the backend user object as the logged-in user
+        localStorage.setItem('LOGGED_IN_USER', JSON.stringify(employee));
+        const userData = this.auth.getUserByEmail(email);
+        if (userData && userData.password === this.password) {
+          this.auth.login(userData.username, userData.email);
+          this.isLoggedService.loginSuccess(userData.username);
+          this.router.navigate(['/portfolio']);
+        } else {
+          this.errorMessage = 'Invalid password!';
+        }
+      },
+      error: (err) => {
+        this.errorMessage = 'User not found. Please register first!';
+      }
+    });
   }
 }

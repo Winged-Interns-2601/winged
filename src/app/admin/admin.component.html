@@ -98,7 +98,7 @@
   <main class=" ml-64 flex-1 p-10">
       <div class=" flex justify-between items-center mb-8">
     <div>
-      <p class="text-white">Pages / Dashboard</p>
+      <p class="text-white"><span>Pages</span> / <span *ngIf="activePage === 'dashboard'">Dashboard</span><span *ngIf="activePage === 'table'">Table</span><span *ngIf="activePage === 'billing'">Billing</span><span *ngIf="activePage === 'profile'">Profile</span></p>
       <h1 class="text-2xl font-bold"  *ngIf="activePage === 'dashboard'">Dashboard</h1>
       <h1 class="text-2xl font-bold"  *ngIf="activePage === 'table'">Table</h1>
       <h1 class="text-2xl font-bold"  *ngIf="activePage === 'billing'">Billing</h1>
@@ -126,7 +126,7 @@
     <div class="col-span-2 grid grid-cols-2 gap-6">
 
       <!-- Card 1: Users Active -->
-      <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition">
+      <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl p-3 shadow-lg hover:shadow-xl transition">
         <div class="flex justify-between items-start mb-4">
           <div class="bg-white text-orange-500 w-12 h-12 rounded-full flex items-center justify-center text-lg">👤</div>
           <span class="text-sm font-semibold text-orange-100">+55%</span>
@@ -136,7 +136,7 @@
       </div>
 
       <!-- Card 2: Click Events -->
-      <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition">
+      <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl p-3 shadow-lg hover:shadow-xl transition">
         <div class="flex justify-between items-start mb-4">
           <div class="bg-white text-blue-500 w-12 h-12 rounded-full flex items-center justify-center text-lg">👍</div>
           <span class="text-sm font-semibold text-blue-100">+124%</span>
@@ -146,7 +146,7 @@
       </div>
 
       <!-- Card 3: Purchases -->
-      <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition">
+      <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-2xl p-3 shadow-lg hover:shadow-xl transition">
         <div class="flex justify-between items-start mb-4">
           <div class="bg-white text-green-500 w-12 h-12 rounded-full flex items-center justify-center text-lg">🛒</div>
           <span class="text-sm font-semibold text-green-100">+15%</span>
@@ -156,7 +156,7 @@
       </div>
 
       <!-- Card 4: Likes -->
-      <div class="bg-gradient-to-br from-red-500 to-red-600 text-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition">
+      <div class="bg-gradient-to-br from-red-500 to-red-600 text-white rounded-2xl p-3 shadow-lg hover:shadow-xl transition">
         <div class="flex justify-between items-start mb-4">
           <div class="bg-white text-red-500 w-12 h-12 rounded-full flex items-center justify-center text-lg">❤️</div>
           <span class="text-sm font-semibold text-red-100">+90%</span>

@@ -1,6 +1,36 @@
 import { Injectable } from '@angular/core';
 import { IsLoggedService } from './is-logged.service';
 
+export interface PortfolioUser {
+  username: string;
+  email: string;
+  password: string;
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  pinCode?: string;
+  designation?: string;
+  employeeType?: string;
+  panNo?: string;
+  aadharNo?: string;
+  joiningDate?: string;
+  exitDate?: string;
+  name: string;
+  role: string;
+  about: string;
+  skills: any[];
+  projects: any[];
+  contact: {
+    email: string;
+    github: string;
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -11,15 +41,20 @@ export class AuthService {
 
   constructor(private isLoggedService: IsLoggedService) {}
 
-  login(username: string) {
+  login(username: string, email?: string) {
     this.currentUser = username;
     localStorage.setItem('CURRENT_USER', username);
+    if (email) {
+      localStorage.setItem('CURRENT_USER_EMAIL', email);
+    }
     this.isLoggedService.loginSuccess(username);
   }
 
   logout() {
     this.currentUser = null;
     localStorage.removeItem('CURRENT_USER');
+    localStorage.removeItem('CURRENT_USER_EMAIL');
+    localStorage.removeItem('LOGGED_IN_USER');
     this.isLoggedService.logout();
   }
 
@@ -30,12 +65,21 @@ export class AuthService {
     return this.currentUser;
   }
 
+  getCurrentUserEmail(): string | null {
+    return localStorage.getItem('CURRENT_USER_EMAIL');
+  }
+
+  getLoggedInUser(): any | null {
+    const stored = localStorage.getItem('LOGGED_IN_USER');
+    return stored ? JSON.parse(stored) : null;
+  }
+
   isLoggedInStatus(): boolean {
     return this.currentUser !== null;
   }
 
   // Register a new user in localStorage
-  registerUser(email: string, username: string, password: string): boolean {
+  registerUser(email: string, username: string, password: string, extra?: Partial<PortfolioUser>): boolean {
     const users = this.getAllUsers();
 
     // Check if email or username already exists
@@ -46,27 +90,44 @@ export class AuthService {
     }
 
     // Store user in localStorage
-    users[email] = {
+    const user: PortfolioUser = {
       username,
       email,
       password,
-      name: '',
-      role: '',
-      about: '',
-      skills: [],
-      projects: [],
+      firstName: extra?.firstName ?? '',
+      middleName: extra?.middleName ?? '',
+      lastName: extra?.lastName ?? '',
+      phone: extra?.phone ?? '',
+      address: extra?.address ?? '',
+      city: extra?.city ?? '',
+      state: extra?.state ?? '',
+      country: extra?.country ?? '',
+      pinCode: extra?.pinCode ?? '',
+      designation: extra?.designation ?? '',
+      employeeType: extra?.employeeType ?? '',
+      panNo: extra?.panNo ?? '',
+      aadharNo: extra?.aadharNo ?? '',
+      joiningDate: extra?.joiningDate ?? '',
+      exitDate: extra?.exitDate ?? '',
+      name: extra?.name ?? '',
+      role: extra?.role ?? '',
+      about: extra?.about ?? '',
+      skills: extra?.skills ?? [],
+      projects: extra?.projects ?? [],
       contact: {
         email,
-        github: ''
+        github: extra?.contact?.github ?? ''
       }
     };
+
+    users[email] = user;
 
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(users));
     return true; // Success
   }
 
   // Get all users from localStorage
-  private getAllUsers(): any {
+  private getAllUsers(): Record<string, PortfolioUser> {
     const stored = localStorage.getItem(this.STORAGE_KEY);
     return stored ? JSON.parse(stored) : {};
   }
@@ -78,13 +139,13 @@ export class AuthService {
   }
 
   // Get user by email
-  getUserByEmail(email: string): any {
+  getUserByEmail(email: string): PortfolioUser | null {
     const users = this.getAllUsers();
     return users[email] || null;
   }
 
   // Get user by username
-  getUserByUsername(username: string): any {
+  getUserByUsername(username: string): PortfolioUser | null {
     const users = this.getAllUsers();
     for (let user of Object.values(users)) {
       if ((user as any).username === username) {

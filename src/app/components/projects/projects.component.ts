@@ -1,21 +1,30 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { ProjectsService, Project } from '../../services/projects.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-projects',
+  standalone: true,
   imports: [NgFor, NgIf, FormsModule],
   templateUrl: './projects.component.html',
-  styleUrl: './projects.component.css'
+  styleUrls: ['./projects.component.css']
 })
-export class ProjectsComponent implements OnInit {
+export class ProjectsComponent implements OnInit, OnDestroy {
 
-  @Input() projects!: any[];
+  @Input() projects: Project[] = [];
   @Input() role!: string;
   selectedProjectId: string | null = null;
+  private subscription: Subscription | null = null;
+  editingId: string | null = null;
+  editProject = { title: '', tech: '', image: '' };
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(
+    private route: ActivatedRoute,
+    private projectsService: ProjectsService
+  ) {}
 
   ngOnInit() {
     // Get project ID from route params if available
@@ -24,41 +33,64 @@ export class ProjectsComponent implements OnInit {
         this.selectedProjectId = params['id'];
       }
     });
+
+    // Subscribe to projects from service
+    this.subscription = this.projectsService.projects$.subscribe(projects => {
+      this.projects = projects;
+    });
   }
 
-  projects1 = [
-    { title: 'Resume Analyzer', tech: 'HTML • CSS • JS', image: 'assets/img10.jpg' },
-    { title: 'Daily Expense Tracker', tech: 'Angular • TypeScript', image: 'assets/img9.jpg' },
-    { title: 'Portfolio Website', tech: 'Angular • Tailwind', image: 'assets/img12.jpg' }
-  ];
-
-  editingIndex: number | null = null;
-  editProject = { title: '', tech: '', image: '' };
-
-  addProject(title: string, tech: string, image: string) {
-    this.projects1.push({ title, tech, image });
-  }
-
-  deleteProject(index: number) {
-    if (confirm('Are you sure you want to delete this project?')) {
-      this.projects1.splice(index, 1);
+  ngOnDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
     }
   }
 
-  startEdit(index: number) {
-    this.editingIndex = index;
-    this.editProject = { ...this.projects1[index] };
+  addProject(title: string, tech: string, image: string) {
+    this.projectsService.addProject(title, tech, image);
+  }
+
+  deleteProject(id: string) {
+    if (confirm('Are you sure you want to delete this project?')) {
+      this.projectsService.deleteProject(id);
+    }
+  }
+
+  startEdit(project: Project) {
+    this.editingId = project.id || null;
+    this.editProject = { ...project };
   }
 
   cancelEdit() {
-    this.editingIndex = null;
+    this.editingId = null;
     this.editProject = { title: '', tech: '', image: '' };
   }
 
   saveEdit() {
-    if (this.editingIndex !== null) {
-      this.projects1[this.editingIndex] = { ...this.editProject };
-      this.editingIndex = null;
+    if (!this.editProject.title || !this.editProject.tech) {
+      alert('Please fill in title and tech stack');
+      return;
+    }
+
+    if (this.editingId !== null && this.editingId !== undefined) {
+      const projectExists = this.projects.find(p => p.id === this.editingId);
+      
+      if (projectExists) {
+        this.projectsService.updateProject(
+          this.editingId,
+          this.editProject.title,
+          this.editProject.tech,
+          this.editProject.image || projectExists.image
+        );
+      } else {
+        this.projectsService.addProject(
+          this.editProject.title,
+          this.editProject.tech,
+          this.editProject.image || 'assets/default-project.jpg'
+        );
+      }
+      
+      this.editingId = null;
       this.editProject = { title: '', tech: '', image: '' };
     }
   }

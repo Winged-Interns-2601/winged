@@ -5,3 +5,15 @@
     background-position: left 60%;
 
 }
+
+.input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #000;
+  border-radius: 8px;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #16a34a;
+}

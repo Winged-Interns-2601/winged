@@ -1,70 +1,155 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
 import { IsLoggedService } from '../services/is-logged.service';
-import { PORTFOLIO_DATA } from '../data/portfolio-data';
+import { EmployeeService } from '../services/employee.service';
 
 @Component({
   selector: 'app-register',
+  standalone: true,
   imports: [FormsModule, CommonModule],
   templateUrl: './register.component.html',
-  styleUrl: './register.component.css'
+  styleUrls: ['./register.component.css']
 })
-export class RegisterComponent implements OnInit {
-  errorMessage: string = '';
-  successMessage: string = '';
-  isLoading: boolean = false;
+export class RegisterComponent {
+
+  currentStep = 1;
+
+  errorMessage = '';
+  successMessage = '';
 
   formData = {
-    username: '',
-    email: '',
-    password: ''
-  };
+  firstName: '',
+  middleName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  address: '',      // street
+  city: '',         // NEW
+  state: '',        // NEW
+  country: '',      // NEW
+  pinCode: '',      // NEW
+  designation: '',
+  employeeType: '',
+  panNo: '',
+  aadharNo: '',
+  joiningDate: '',
+  exitDate: '',
+  username: '',
+  password: ''
+};
 
-  constructor(private auth: AuthService, private router: Router, private isLoggedService: IsLoggedService) {}
+  constructor(
+    private employeeService: EmployeeService,
+    private auth: AuthService,
+    private router: Router,
+    private isLoggedService: IsLoggedService
+  ) {}
 
-  ngOnInit() {
-    // Check if username is provided in query params to pre-fill
-    // This allows pre-filling default user data
-  }
-
-  prefillDefaultUser(username: string) {
-    // Method removed - no longer auto-filling default users
-  }
-
-  register() {
-    this.errorMessage = '';
-    this.successMessage = '';
-
-    if (!this.formData.username || !this.formData.email || !this.formData.password) {
-      this.errorMessage = 'Username, Email, and Password are required!';
-      return;
+  nextStep() {
+    if (this.currentStep < 3) {
+      this.currentStep++;
+      this.errorMessage = '';
     }
-
-    const username = this.formData.username.toLowerCase().trim();
-    const email = this.formData.email.toLowerCase().trim();
-
-    // Try to register user in memory
-    const success = this.auth.registerUser(email, username, this.formData.password);
-    
-    if (!success) {
-      this.errorMessage = 'Username or Email already exists. Please choose different ones.';
-      return;
-    }
-
-    this.successMessage = 'Registration successful! Logging in...';
-
-    // Auto-login
-    setTimeout(() => {
-      this.auth.login(username);
-      this.isLoggedService.loginSuccess(username);
-      this.router.navigate(['/portfolio']);
-    }, 1500);
   }
+
+  prevStep() {
+    if (this.currentStep > 1) {
+      this.currentStep--;
+      this.errorMessage = '';
+    }
+  }
+
+register() {
+  this.errorMessage = '';
+  this.successMessage = '';
+
+  if (!this.formData.username || !this.formData.email || !this.formData.password) {
+    this.errorMessage = 'Username, Email and Password are required!';
+    return;
+  }
+
+  const email = this.formData.email.toLowerCase().trim();
+  const username = this.formData.username.toLowerCase().trim();
+  const password = this.formData.password;
+
+  // Map form data to match Spring Boot entity structure
+ const payload = {
+  employeeId: Math.floor(Date.now()),
+  firstName: this.formData.firstName,
+  middleName: this.formData.middleName || '',
+  lastName: this.formData.lastName,
+  email,
+  phone: this.formData.phone,
+  designation: this.formData.designation,
+  employeeType: this.formData.employeeType,
+  joiningDate: new Date(this.formData.joiningDate),
+  exitDate: this.formData.exitDate ? new Date(this.formData.exitDate) : null,
+  aadharNo: this.formData.aadharNo,
+  panNO: this.formData.panNo,
+  address: {
+  id: null,
+  street: this.formData.address || '',
+  city: this.formData.city || '',
+  state: this.formData.state || '',
+  country: this.formData.country || '',
+  pinCode: this.formData.pinCode || ''
+}
+};
+
+  this.employeeService.createUser(payload).subscribe({
+    next: (response: any) => {
+      this.successMessage = 'Registration successful!';
+
+      // Store the created user from backend response (if returned)
+      if (response) {
+        localStorage.setItem('LOGGED_IN_USER', JSON.stringify(response));
+      }
+
+      this.auth.registerUser(email, username, password, {
+        firstName: this.formData.firstName,
+        middleName: this.formData.middleName,
+        lastName: this.formData.lastName,
+        phone: this.formData.phone,
+        address: this.formData.address,
+        city: this.formData.city,
+        state: this.formData.state,
+        country: this.formData.country,
+        pinCode: this.formData.pinCode,
+        designation: this.formData.designation,
+        employeeType: this.formData.employeeType,
+        panNo: this.formData.panNo,
+        aadharNo: this.formData.aadharNo,
+        joiningDate: this.formData.joiningDate,
+        exitDate: this.formData.exitDate,
+        name: `${this.formData.firstName} ${this.formData.lastName}`.trim(),
+        role: this.formData.designation
+      });
+
+      this.auth.login(username, email);
+      setTimeout(() => this.router.navigate(['/portfolio']), 1200);
+    },
+    error: (err) => {
+      this.errorMessage = 'Registration failed: ' + (err.error?.message || err.message || 'Unknown error');
+    }
+  });
+}
 
   goToLogin() {
     this.router.navigate(['/login']);
   }
+
+  register1() {
+  this.employeeService.createUser(this.formData).subscribe({
+    next: () => {
+      this.successMessage = 'Employee registered successfully';
+    },
+    error: () => {
+      this.errorMessage = 'Registration failed';
+    }
+  });
+}
+
 }
