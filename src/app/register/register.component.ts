@@ -120,7 +120,7 @@ register() {
         pinCode: this.formData.pinCode,
         designation: this.formData.designation,
         employeeType: this.formData.employeeType,
-        panNo: this.formData.panNo,
+        panNO: this.formData.panNo,
         aadharNo: this.formData.aadharNo,
         joiningDate: this.formData.joiningDate,
         exitDate: this.formData.exitDate,

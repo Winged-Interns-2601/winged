@@ -35,10 +35,9 @@ export class LoginComponent {
 
     const email = this.email.toLowerCase().trim();
     
-    // Call Spring Boot API to get user by email
+
     this.employeeService.getByEmail(email).subscribe({
       next: (employee: any) => {
-        // Store the backend user object as the logged-in user
         localStorage.setItem('LOGGED_IN_USER', JSON.stringify(employee));
         const userData = this.auth.getUserByEmail(email);
         if (userData && userData.password === this.password) {

@@ -16,7 +16,7 @@ export interface PortfolioUser {
   pinCode?: string;
   designation?: string;
   employeeType?: string;
-  panNo?: string;
+  panNO?: string;
   aadharNo?: string;
   joiningDate?: string;
   exitDate?: string;
@@ -105,7 +105,7 @@ export class AuthService {
       pinCode: extra?.pinCode ?? '',
       designation: extra?.designation ?? '',
       employeeType: extra?.employeeType ?? '',
-      panNo: extra?.panNo ?? '',
+      panNO: extra?.panNO ?? '',
       aadharNo: extra?.aadharNo ?? '',
       joiningDate: extra?.joiningDate ?? '',
       exitDate: extra?.exitDate ?? '',

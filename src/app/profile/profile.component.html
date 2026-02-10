@@ -84,14 +84,18 @@
           </p>
         </div>
 
-        <div>
-          <p class="text-gray-500">Joining / Exit</p>
-          <p class="text-gray-800 font-medium">{{ user?.joiningDate }} / {{ user?.exitDate }}</p>
-        </div>
+       <div>
+  <p class="text-gray-500">Joining / Exit</p>
+  <p class="text-gray-800 font-medium">
+    {{ user?.joiningDate | date:'dd-MM-yyyy' }} /
+    {{ user?.exitDate | date:'dd-MM-yyyy' }}
+  </p>
+</div>
+
 
         <div>
           <p class="text-gray-500">PAN</p>
-          <p class="text-gray-800 font-medium">{{ user?.panNo }}</p>
+          <p class="text-gray-800 font-medium">{{ user?.panNO }}</p>
         </div>
 
         <div>
@@ -101,7 +105,7 @@
       </div>
     </div>
 
-    <!-- Stats -->
+
     <div class="grid grid-cols-4 gap-4 mb-8">
       <div class="bg-yellow-400 text-white p-4 rounded-xl text-center">
         {{ projects.length }}<br>Projects
