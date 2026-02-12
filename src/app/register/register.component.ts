@@ -66,8 +66,8 @@ register() {
   this.errorMessage = '';
   this.successMessage = '';
 
-  if (!this.formData.username || !this.formData.email || !this.formData.password) {
-    this.errorMessage = 'Username, Email and Password are required!';
+  if (!this.formData.email || !this.formData.password) {
+    this.errorMessage = 'Email and Password are required!';
     return;
   }
 

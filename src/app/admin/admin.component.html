@@ -30,7 +30,7 @@
            ? 'bg-white/10 text-white'
            : 'text-white hover:bg-white/10 '"
          class="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer">
-        👥 <span>Table</span>
+        👥 <span>Employee</span>
       </a>
     </li>
 
@@ -98,9 +98,9 @@
   <main class=" ml-64 flex-1 p-10">
       <div class=" flex justify-between items-center mb-8">
     <div>
-      <p class="text-white"><span>Pages</span> / <span *ngIf="activePage === 'dashboard'">Dashboard</span><span *ngIf="activePage === 'table'">Table</span><span *ngIf="activePage === 'billing'">Billing</span><span *ngIf="activePage === 'profile'">Profile</span></p>
+      <p class="text-white"><span>Pages</span> / <span *ngIf="activePage === 'dashboard'">Dashboard</span><span *ngIf="activePage === 'table'">Employee</span><span *ngIf="activePage === 'billing'">Billing</span><span *ngIf="activePage === 'profile'">Profile</span></p>
       <h1 class="text-2xl font-bold"  *ngIf="activePage === 'dashboard'">Dashboard</h1>
-      <h1 class="text-2xl font-bold"  *ngIf="activePage === 'table'">Table</h1>
+      <h1 class="text-2xl font-bold"  *ngIf="activePage === 'table'">Employee</h1>
       <h1 class="text-2xl font-bold"  *ngIf="activePage === 'billing'">Billing</h1>
       <h1 class="text-2xl font-bold"  *ngIf="activePage === 'profile'">Profile</h1>
     </div>
@@ -132,7 +132,7 @@
           <span class="text-sm font-semibold text-orange-100">+55%</span>
         </div>
         <h3 class="text-white text-sm mb-2">Users Active</h3>
-        <h2 class="text-4xl font-bold">1,600</h2>
+        <h2 class="text-4xl font-bold">{{ userCount }}</h2>
       </div>
 
       <!-- Card 2: Click Events -->
@@ -503,135 +503,86 @@
 
     </div>
 
-    <div class="table" *ngIf="activePage === 'table'">
-        <div class="bg-blue rounded-2xl p-6 shadow-2xl shadow-white/20 ">
+<div class="table" *ngIf="activePage === 'table'">
+<div class="bg-blue rounded-2xl p-6 shadow-2xl shadow-white/20 w-230">
+  
 
-  <h2 class="text-xl font-bold mb-4">Authors table</h2>
+  <h2 class="text-xl font-bold mb-4">Employee table</h2>
+  <div class="overflow-auto h-[calc(100vh-260px)] w-[850px]">
 
-  <!-- Table Header -->
-  <div class="grid grid-cols-5 text-white text-sm border-b pb-2">
-    <span>AUTHOR</span>
-    <span>FUNCTION</span>
-    <span>STATUS</span>
-    <span>EMPLOYED</span>
-    <span></span>
+
+
+    <!-- Table Header -->
+      <div class="grid grid-cols-13 text-white text-sm border-b border-b-2 pb-2 font-semibold min-w-[1660px] sticky top-0 bg-blue">
+      <span>FirstName</span>
+      <span>LastName</span>
+      <span>Employee Type</span>
+      <span>Destination</span>
+      <span>Email</span>
+      <span>Phone</span>
+      <span>Address</span>
+      <span>Joining Date</span>
+      <span>Exit Date</span>
+      <span>Adhar No</span>
+      <span>Pan No</span>
+      <span>Status</span>
+    </div>
+
+    <!-- Dynamic Employee Rows -->
+    <div *ngFor="let employee of employees"
+         class="grid grid-cols-13 items-center py-4 border-b employee-row min-w-[1590px]">
+
+         
+         
+         <p class="font-semibold">{{ employee.firstName || '' }}</p>
+         <p class="font-semibold">{{ employee.lastName || '' }}</p>
+         <p class="font-semibold">{{ employee.employeeType || 'N/A' }}</p>
+         <p class="font-semibold">{{ employee.designation || 'N/A' }}</p>
+
+          <p class="text-white text-sm" *ngIf="employee.email && employee.email.includes('@')">
+            {{ employee.email.split('@')[0] }}<br>
+            &#64;{{ employee.email.split('@')[1] }}
+          </p>
+
+          <p class="text-white text-sm" *ngIf="!employee.email || !employee.email.includes('@')">
+            N/A
+          </p>
+
+          <p class="text-white">{{ employee.phone || 'N/A' }}</p>
+
+          <span>{{ employee.address?.city || 'N/A' }}</span>
+        <span class="text-white">
+          {{ employee.joiningDate ? (employee.joiningDate | date:'dd/MM/yyyy') : 'N/A' }} 
+        </span>
+
+        <span class="text-white">
+          {{ employee.exitDate ? (employee.exitDate | date:'dd/MM/yyyy') : 'Present' }}
+        </span>
+
+        <p class="font-semibold">{{ employee.aadharNo || 'N/A' }}</p>
+
+        <p class="font-semibold">{{ employee.panNO || 'N/A' }}</p>
+      
+      <span class="text-white text-xs px-3 py-1 rounded-full w-fit bg-green-500">
+        {{ employee.status || 'online' }}
+      </span>
+
+    </div>
+    </div>
+
+
+    <div *ngIf="employees.length === 0" class="text-center py-8 text-white">
+      <p>No employee data available</p>
+    </div>
+
   </div>
 
-  <!-- Row 1 -->
-  <div class="grid grid-cols-5 items-center py-4 border-b">
-    <div class="flex items-center gap-3">
-      <img src="https://i.pravatar.cc/40?1" class="w-10 h-10 rounded-full" />
-      <div>
-        <p class="font-semibold">John Michael</p>
-        <p class="text-white text-sm">john&#64;creative-tim.com</p>
-      </div>
-    </div>
-    <div>
-      <p class="font-semibold">Manager</p>
-      <p class="text-white text-sm">Organization</p>
-    </div>
-    <span class="bg-green-500 text-white text-sm px-3 py-1 rounded-full w-fit">ONLINE</span>
-    <span class="text-white">23/04/18</span>
-    <a href="#" class="text-white hover:text-black">Edit</a>
-  </div>
-
-  <!-- Row 2 -->
-  <div class="grid grid-cols-5 items-center py-4 border-b">
-    <div class="flex items-center gap-3">
-      <img src="https://i.pravatar.cc/40?2" class="w-10 h-10 rounded-full" />
-      <div>
-        <p class="font-semibold">Alexa Liras</p>
-        <p class="text-white text-sm">alexa&#64;creative-tim.com</p>
-      </div>
-    </div>
-    <div>
-      <p class="font-semibold">Programator</p>
-      <p class="text-white text-sm">Developer</p>
-    </div>
-    <span class="bg-white text-black text-sm px-3 py-1 rounded-full w-fit">OFFLINE</span>
-    <span class="text-white">11/01/19</span>
-    <a href="#" class="text-white hover:text-black">Edit</a>
-  </div>
-
-  <!-- Row 3 -->
-  <div class="grid grid-cols-5 items-center py-4 border-b">
-    <div class="flex items-center gap-3">
-      <img src="https://i.pravatar.cc/40?3" class="w-10 h-10 rounded-full" />
-      <div>
-        <p class="font-semibold">Laurent Perrier</p>
-        <p class="text-white text-sm">laurent&#64;creative-tim.com</p>
-      </div>
-    </div>
-    <div>
-      <p class="font-semibold">Executive</p>
-      <p class="text-white text-sm">Projects</p>
-    </div>
-    <span class="bg-green-500 text-white text-sm px-3 py-1 rounded-full w-fit">ONLINE</span>
-    <span class="text-white">19/09/17</span>
-    <a href="#" class="text-white hover:text-black">Edit</a>
-  </div>
-
-  <!-- Row 4 -->
-  <div class="grid grid-cols-5 items-center py-4 border-b">
-    <div class="flex items-center gap-3">
-      <img src="https://i.pravatar.cc/40?4" class="w-10 h-10 rounded-full" />
-      <div>
-        <p class="font-semibold">Michael Levi</p>
-        <p class="text-white text-sm">michael&#64;creative-tim.com</p>
-      </div>
-    </div>
-    <div>
-      <p class="font-semibold">Programator</p>
-      <p class="text-white text-sm">Developer</p>
-    </div>
-    <span class="bg-green-500 text-white text-sm px-3 py-1 rounded-full w-fit">ONLINE</span>
-    <span class="text-white">24/12/08</span>
-    <a href="#" class="text-white hover:text-black">Edit</a>
-  </div>
-
-  <!-- Row 5 -->
-  <div class="grid grid-cols-5 items-center py-4 border-b">
-    <div class="flex items-center gap-3">
-      <img src="https://i.pravatar.cc/40?5" class="w-10 h-10 rounded-full" />
-      <div>
-        <p class="font-semibold">Richard Gran</p>
-        <p class="text-white text-sm">richard&#64;creative-tim.com</p>
-      </div>
-    </div>
-    <div>
-      <p class="font-semibold">Manager</p>
-      <p class="text-white text-sm">Executive</p>
-    </div>
-    <span class="bg-white text-black text-sm px-3 py-1 rounded-full w-fit">OFFLINE</span>
-    <span class="text-white">04/10/21</span>
-    <a href="#" class="text-white hover:text-black">Edit</a>
-  </div>
-
-  <!-- Row 6 -->
-  <div class="grid grid-cols-5 items-center py-2">
-    <div class="flex items-center gap-3">
-      <img src="https://i.pravatar.cc/40?6" class="w-10 h-10 rounded-full" />
-      <div>
-        <p class="font-semibold">Miriam Eric</p>
-        <p class="text-white text-sm">miriam&#64;creative-tim.com</p>
-      </div>
-    </div>
-    <div>
-      <p class="font-semibold">Programator</p>
-      <p class="text-white text-sm">Developer</p>
-    </div>
-    <span class="bg-white text-black text-sm px-3 py-1 rounded-full w-fit">OFFLINE</span>
-    <span class="text-white">14/09/20</span>
-    <a href="#" class="text-white hover:text-black">Edit</a>
-  </div>
-
-</div>
 
 <div class="bg-blue rounded-2xl p-6 shadow-2xl mt-10 shadow-white/20 ">
 
   <h2 class="text-xl font-bold mb-4">Projects table</h2>
 
-  <!-- Table Header -->
+
   <div class="grid grid-cols-4 text-white text-sm border-b pb-2">
     <span>PROJECT</span>
     <span>BUDGET</span>
@@ -639,7 +590,7 @@
     <span>COMPLETION</span>
   </div>
 
-  <!-- Row 1 -->
+
   <div class="grid grid-cols-4 items-center py-4 border-b">
     <div class="flex items-center gap-3">
       <img src="https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg" class="w-8 h-8">
@@ -655,7 +606,7 @@
     </div>
   </div>
 
-  <!-- Row 2 -->
+
   <div class="grid grid-cols-4 items-center py-4 border-b">
     <div class="flex items-center gap-3">
       <img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png" class="w-8 h-8">
@@ -671,7 +622,7 @@
     </div>
   </div>
 
-  <!-- Row 3 -->
+
   <div class="grid grid-cols-4 items-center py-4 border-b">
     <div class="flex items-center gap-3">
       <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Jira_%28Software%29_logo.svg" class="w-8 h-8">
@@ -687,7 +638,7 @@
     </div>
   </div>
 
-  <!-- Row 4 -->
+
   <div class="grid grid-cols-4 items-center py-4 border-b">
     <div class="flex items-center gap-3">
       <img src="https://upload.wikimedia.org/wikipedia/commons/7/76/Slack_Icon.png" class="w-8 h-8">
@@ -703,7 +654,6 @@
     </div>
   </div>
 
-  <!-- Row 5 -->
   <div class="grid grid-cols-4 items-center py-4 border-b">
     <div class="flex items-center gap-3">
       <img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/Atlassian_logo.svg" class="w-8 h-8">
@@ -719,7 +669,6 @@
     </div>
   </div>
 
-  <!-- Row 6 -->
   <div class="grid grid-cols-4 items-center py-4">
     <div class="flex items-center gap-3">
       <img src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Adobe_XD_CC_icon.svg" class="w-8 h-8">

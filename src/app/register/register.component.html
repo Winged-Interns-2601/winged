@@ -38,38 +38,112 @@
           {{ successMessage }}
         </div>
 
-        <form class="mt-6 space-y-4">
+        <form (ngSubmit)="register()">
 
-          <!-- STEP 1 : NAME + CONTACT -->
-          <div *ngIf="currentStep === 1" class="space-y-4">
-            <input class="input" placeholder="First Name" [(ngModel)]="formData.firstName" name="firstName">
-            <input class="input" placeholder="Middle Name" [(ngModel)]="formData.middleName" name="middleName">
-            <input class="input" placeholder="Last Name" [(ngModel)]="formData.lastName" name="lastName">
-            <input class="input" placeholder="Phone" [(ngModel)]="formData.phone" name="phone">
-          </div>
+        <!--step1-->
+<div *ngIf="currentStep === 1" class="grid grid-cols-2 gap-3 text-sm">
+
+  <div>
+    <label class="label block text-sm font-medium text-gray-600 mb-1">First Name</label>
+    <input class="input-sm" [(ngModel)]="formData.firstName" name="firstName">
+  </div>
+
+  <div>
+    <label class="label block text-sm font-medium text-gray-600 mb-1">Middle Name</label>
+    <input class="input-sm" [(ngModel)]="formData.middleName" name="middleName">
+  </div>
+
+  <div>
+    <label class="label block text-sm font-medium text-gray-600 mb-1">Last Name</label>
+    <input class="input-sm" [(ngModel)]="formData.lastName" name="lastName">
+  </div>
+
+  <div>
+    <label class="label block text-sm font-medium text-gray-600 mb-1">Designation</label>
+    <input class="input-sm" [(ngModel)]="formData.designation" name="designation">
+  </div>
+  
+  <div>
+    <label class="label block text-sm font-medium text-gray-600 mb-1">Employee Type</label>
+    <input class="input-sm" [(ngModel)]="formData.employeeType" name="employeeType">
+  </div>
+  <div>
+    <label class="label block text-sm font-medium text-gray-600 mb-1">Phone</label>
+    <input class="input-sm" [(ngModel)]="formData.phone" name="phone">
+  </div>
+
+</div>
+
           
           <!-- STEP 2 : EMPLOYEE INFO -->
-          <div *ngIf="currentStep === 2" class="grid grid-cols-2 gap-4">
-            <input class="input" placeholder="Address" [(ngModel)]="formData.address" name="address">
-            <input class="input" placeholder="City" [(ngModel)]="formData.city" name="city">
-            <input class="input" placeholder="State" [(ngModel)]="formData.state" name="state">
-            <input class="input" placeholder="Country" [(ngModel)]="formData.country" name="country">
-            <input class="input" placeholder="Pin Code (6 digits)" [(ngModel)]="formData.pinCode" name="pinCode">
-            <input class="input" placeholder="Designation" [(ngModel)]="formData.designation" name="designation">
-            <input class="input" placeholder="Employee Type" [(ngModel)]="formData.employeeType" name="employeeType">
-            <input class="input" placeholder="PAN Number (10 chars)" [(ngModel)]="formData.panNo" name="panNo">
-            <input class="input" placeholder="Aadhar Number (12 digits)" [(ngModel)]="formData.aadharNo" name="aadharNo">
-          </div>
+          <div *ngIf="currentStep === 2" class="grid grid-cols-3 gap-3 text-sm">
+
+  <div>
+    <label class="label block text-sm font-medium text-gray-600 mb-1">Street</label>
+    <input class="input-sm" [(ngModel)]="formData.address" name="address">
+  </div>
+
+  <div>
+    <label class="label block text-sm font-medium text-gray-600 mb-1">City</label>
+    <input class="input-sm" [(ngModel)]="formData.city" name="city">
+  </div>
+
+  <div>
+    <label class="label block text-sm font-medium text-gray-600 mb-1">State</label>
+    <input class="input-sm" [(ngModel)]="formData.state" name="state">
+  </div>
+
+  <div>
+    <label class="label block text-sm font-medium text-gray-600 mb-1">Country</label>
+    <input class="input-sm" [(ngModel)]="formData.country" name="country">
+  </div>
+
+  <div>
+    <label class="label block text-sm font-medium text-gray-600 mb-1">Pin Code</label>
+    <input class="input-sm" [(ngModel)]="formData.pinCode" name="pinCode">
+  </div>
+
+
+  <div>
+    <label class="label block text-sm font-medium text-gray-600 mb-1">PAN</label>
+    <input class="input-sm" [(ngModel)]="formData.panNo" name="panNo">
+  </div>
+
+  <div>
+    <label class="label block text-sm font-medium text-gray-600 mb-1">Aadhar</label>
+    <input class="input-sm" [(ngModel)]="formData.aadharNo" name="aadharNo">
+  </div>
+
+</div>
+
           
           <!-- STEP 3 : DATES + LOGIN -->
-          <div *ngIf="currentStep === 3" class="space-y-4">
-            <input type="date" class="input" [(ngModel)]="formData.joiningDate" name="joiningDate">
-            <input type="date" class="input" [(ngModel)]="formData.exitDate" name="exitDate">
-            <input class="input" placeholder="Email" [(ngModel)]="formData.email" name="email">
-            <input class="input" placeholder="Username" [(ngModel)]="formData.username" name="username">
-            <input type="password" class="input" placeholder="Password"
-                   [(ngModel)]="formData.password" name="password">
-          </div>
+<div *ngIf="currentStep === 3" class="grid grid-cols-2 gap-3 text-sm">
+
+  <div>
+    <label class="label block text-sm font-medium text-gray-600 mb-1">Joining Date</label>
+    <input type="date" class="input-sm" [(ngModel)]="formData.joiningDate" name="joiningDate">
+  </div>
+
+  <div>
+    <label class="label block text-sm font-medium text-gray-600 mb-1">Exit Date</label>
+    <input type="date" class="input-sm" [(ngModel)]="formData.exitDate" name="exitDate">
+  </div>
+
+  <div>
+    <label class="label block text-sm font-medium text-gray-600 mb-1">Email</label>
+    <input class="input-sm" [(ngModel)]="formData.email" name="email">
+  </div>
+
+
+
+  <div>
+    <label class="label block text-sm font-medium text-gray-600 mb-1">Password</label>
+    <input type="password" class="input-sm" [(ngModel)]="formData.password" name="password">
+  </div>
+
+</div>
+
 
         </form>
 
