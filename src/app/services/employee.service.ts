@@ -33,6 +33,6 @@ export class EmployeeService {
   }
 
   getUserCount() {
-  return this.http.get<number>(`${this.API}/count`);
-}
+    return this.http.get<number>(`${this.API}/count`);
+  }
 }

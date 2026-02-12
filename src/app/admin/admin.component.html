@@ -508,19 +508,20 @@
   
 
   <h2 class="text-xl font-bold mb-4">Employee table</h2>
-  <div class="overflow-auto h-[calc(100vh-260px)] w-[850px]">
+  <div class="overflow-auto h-[calc(100vh-260px)] w-[880px]">
 
 
 
     <!-- Table Header -->
-      <div class="grid grid-cols-13 text-white text-sm border-b border-b-2 pb-2 font-semibold min-w-[1660px] sticky top-0 bg-blue">
-      <span>FirstName</span>
+      <div class="grid grid-cols-14 bg-blue-900 text-white text-sm border-b  pb-2 p-2 font-semibold min-w-[1660px] sticky top-0 bg-blue">
+        <span class="pl-2">Sr.No</span>
+      <span class="pr-10">FirstName</span>
       <span>LastName</span>
       <span>Employee Type</span>
       <span>Destination</span>
       <span>Email</span>
-      <span>Phone</span>
-      <span>Address</span>
+      <span class="pl-5">Phone</span>
+      <span class="pl-2">Address</span>
       <span>Joining Date</span>
       <span>Exit Date</span>
       <span>Adhar No</span>
@@ -529,17 +530,19 @@
     </div>
 
     <!-- Dynamic Employee Rows -->
-    <div *ngFor="let employee of employees"
-         class="grid grid-cols-13 items-center py-4 border-b employee-row min-w-[1590px]">
+    <div *ngFor="let employee of employees; let i = index"
+         class="grid grid-cols-14 items-center py-4 border-b employee-row min-w-[1590px]">
 
          
-         
-         <p class="font-semibold">{{ employee.firstName || '' }}</p>
-         <p class="font-semibold">{{ employee.lastName || '' }}</p>
-         <p class="font-semibold">{{ employee.employeeType || 'N/A' }}</p>
-         <p class="font-semibold">{{ employee.designation || 'N/A' }}</p>
+<span class="font-semibold pl-5">
+  {{ i + 1 }}<span class="text-white">.</span>
+</span>
+         <p class="font-semibold  pl-5">{{ employee.firstName || '' }}</p>
+         <p class="font-semibold pl-5">{{ employee.lastName || '' }}</p>
+         <p class="font-semibold pl-5">{{ employee.employeeType || 'N/A' }}</p>
+         <p class="font-semibold pl-3">{{ employee.designation || 'N/A' }}</p>
 
-          <p class="text-white text-sm" *ngIf="employee.email && employee.email.includes('@')">
+          <p class="text-white text-sm mr-2" *ngIf="employee.email && employee.email.includes('@')">
             {{ employee.email.split('@')[0] }}<br>
             &#64;{{ employee.email.split('@')[1] }}
           </p>
@@ -548,9 +551,9 @@
             N/A
           </p>
 
-          <p class="text-white">{{ employee.phone || 'N/A' }}</p>
+          <p class="text-white pl-4">{{ employee.phone || 'N/A' }}</p>
 
-          <span>{{ employee.address?.city || 'N/A' }}</span>
+          <span class="pl-5">{{ employee.address?.city || 'N/A' }}</span>
         <span class="text-white">
           {{ employee.joiningDate ? (employee.joiningDate | date:'dd/MM/yyyy') : 'N/A' }} 
         </span>
