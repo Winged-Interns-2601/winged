@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { IsLoggedService } from './is-logged.service';
+import { Observable } from 'rxjs';
 
 export interface PortfolioUser {
   username: string;
@@ -38,8 +40,26 @@ export class AuthService {
 
   private currentUser: string | null = null;
   private STORAGE_KEY = 'PORTFOLIO_USERS';
+  private API = 'http://localhost:8080/api/auth';
 
-  constructor(private isLoggedService: IsLoggedService) {}
+  constructor(private http: HttpClient, private isLoggedService: IsLoggedService) {}
+
+  // Backend API login method
+  loginBackend(email: string, password: string): Observable<any> {
+    console.log('AuthService: Sending login request to:', `${this.API}/login`);
+    console.log('AuthService: Payload:', { email, password });
+    return this.http.post(`${this.API}/login`, { email, password });
+  }
+
+  // Local login method (for after successful backend login)
+  loginLocal(username: string, email?: string) {
+    this.currentUser = username;
+    localStorage.setItem('CURRENT_USER', username);
+    if (email) {
+      localStorage.setItem('CURRENT_USER_EMAIL', email);
+    }
+    this.isLoggedService.loginSuccess(username);
+  }
 
   login(username: string, email?: string) {
     this.currentUser = username;

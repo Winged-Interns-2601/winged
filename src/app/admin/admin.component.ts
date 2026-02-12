@@ -17,14 +17,34 @@ export class AdminComponent implements OnInit {
     constructor(private employeeService: EmployeeService) {}
 
     ngOnInit() {  
+        console.log('Admin component initialized');
+        console.log('API endpoint:', 'http://localhost:8080/api/employees/count');
 
-        this.employeeService.getUserCount().subscribe(count => {
-            this.userCount = count;
+        this.employeeService.getUserCount().subscribe({
+            next: (count) => {
+                console.log('User count API response:', count);
+                console.log('Type of count:', typeof count);
+                this.userCount = count;
+                console.log('User count loaded:', count);
+            },
+            error: (err) => {
+                console.error('Failed to load user count:', err);
+                console.error('Error status:', err.status);
+                console.error('Error message:', err.message);
+                this.userCount = 0;
+            }
         });
-        
 
         this.employeeService.getAllUsers().subscribe(employees => {
             console.log('Raw employee data:', employees);
+            this.employees = employees;
+            
+            // Fallback: use actual employee count if API count failed
+            if (this.userCount === 0 && employees.length > 0) {
+                this.userCount = employees.length;
+                console.log('Using employee array length as user count:', this.userCount);
+            }
+            
             if (employees.length > 0) {
                 console.log('First employee structure:', employees[0]);
                 console.log('Available fields:', Object.keys(employees[0]));

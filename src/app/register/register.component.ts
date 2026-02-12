@@ -82,6 +82,7 @@ register() {
   middleName: this.formData.middleName || '',
   lastName: this.formData.lastName,
   email,
+  password: password, // CRITICAL: Add password field
   phone: this.formData.phone,
   designation: this.formData.designation,
   employeeType: this.formData.employeeType,

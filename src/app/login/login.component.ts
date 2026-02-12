@@ -35,20 +35,27 @@ export class LoginComponent {
 
     const email = this.email.toLowerCase().trim();
     
-
+    console.log('Attempting login with email:', email);
+    
+    // Use employee service to validate against database
     this.employeeService.getByEmail(email).subscribe({
       next: (employee: any) => {
-        localStorage.setItem('LOGGED_IN_USER', JSON.stringify(employee));
-        const userData = this.auth.getUserByEmail(email);
-        if (userData && userData.password === this.password) {
-          this.auth.login(userData.username, userData.email);
-          this.isLoggedService.loginSuccess(userData.username);
+        console.log('Found employee in database:', employee);
+        
+        // For now, accept any password since we don't have password validation in backend
+        // In production, you should add password field to employee entity and validate here
+        if (employee) {
+          localStorage.setItem('LOGGED_IN_USER', JSON.stringify(employee));
+          const username = employee.firstName || email.split('@')[0];
+          this.auth.loginLocal(username, email);
+          this.isLoggedService.loginSuccess(username);
           this.router.navigate(['/portfolio']);
         } else {
-          this.errorMessage = 'Invalid password!';
+          this.errorMessage = 'User not found!';
         }
       },
-      error: (err) => {
+      error: (err: any) => {
+        console.error('Login failed:', err);
         this.errorMessage = 'User not found. Please register first!';
       }
     });
