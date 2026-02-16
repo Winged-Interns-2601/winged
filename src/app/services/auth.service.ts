@@ -161,7 +161,14 @@ export class AuthService {
   // Get user by email
   getUserByEmail(email: string): PortfolioUser | null {
     const users = this.getAllUsers();
-    return users[email] || null;
+    const user = users[email] || null;
+    
+    // Ensure skills array exists
+    if (user && !user.skills) {
+      user.skills = [];
+    }
+    
+    return user;
   }
 
   // Get user by username
@@ -169,9 +176,22 @@ export class AuthService {
     const users = this.getAllUsers();
     for (let user of Object.values(users)) {
       if ((user as any).username === username) {
+        // Ensure skills array exists
+        if (!user.skills) {
+          user.skills = [];
+        }
         return user;
       }
     }
     return null;
+  }
+
+  // Update user skills
+  updateUserSkills(email: string, skills: string[]): void {
+    const users = this.getAllUsers();
+    if (users[email]) {
+      users[email].skills = skills;
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(users));
+    }
   }
 }

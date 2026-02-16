@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
 import { IsLoggedService } from '../services/is-logged.service';
 import { EmployeeService } from '../services/employee.service';
+import { ProjectsService } from '../services/projects.service';
 
 @Component({
   selector: 'app-register',
@@ -38,18 +39,21 @@ export class RegisterComponent {
   joiningDate: '',
   exitDate: '',
   username: '',
-  password: ''
+  password: '',
+  skills: [] as string[],  // Step 4: Skills
+  projects: [] as Array<{title: string, tech: string, image: string}>  // Step 4: Projects
 };
 
   constructor(
     private employeeService: EmployeeService,
     private auth: AuthService,
     private router: Router,
-    private isLoggedService: IsLoggedService
+    private isLoggedService: IsLoggedService,
+    private projectsService: ProjectsService
   ) {}
 
   nextStep() {
-    if (this.currentStep < 3) {
+    if (this.currentStep < 4) {
       this.currentStep++;
       this.errorMessage = '';
     }
@@ -126,10 +130,31 @@ register() {
         joiningDate: this.formData.joiningDate,
         exitDate: this.formData.exitDate,
         name: `${this.formData.firstName} ${this.formData.lastName}`.trim(),
-        role: this.formData.designation
+        role: this.formData.designation,
+        skills: this.formData.skills,  // Add skills
+        projects: [],                  // Initialize empty projects array
+        contact: {
+          email: email,
+          github: ''
+        }
       });
 
       this.auth.login(username, email);
+      
+      // Save projects to ProjectsService
+      if (this.formData.projects.length > 0) {
+        this.formData.projects.forEach(project => {
+          if (project.title && project.tech) {
+            this.projectsService.addProject(
+              project.title,
+              project.tech,
+              project.image || 'assets/default-project.jpg'
+            );
+          }
+        });
+        console.log('Registration: Projects saved to ProjectsService:', this.formData.projects);
+      }
+      
       setTimeout(() => this.router.navigate(['/portfolio']), 1200);
     },
     error: (err) => {
@@ -137,6 +162,49 @@ register() {
     }
   });
 }
+
+  // Skill management methods for step 4
+  newSkill: string = '';
+
+  addSkill() {
+    if (this.newSkill.trim() && !this.formData.skills.includes(this.newSkill.trim())) {
+      this.formData.skills.push(this.newSkill.trim());
+      this.newSkill = '';
+    }
+  }
+
+  removeSkill(skill: string) {
+    const index = this.formData.skills.indexOf(skill);
+    if (index > -1) {
+      this.formData.skills.splice(index, 1);
+    }
+  }
+
+  // Project management methods for step 4
+  addProject() {
+    const newProject = {
+      title: '',
+      tech: '',
+      image: ''
+    };
+    this.formData.projects.push(newProject);
+  }
+
+  removeProject(index: number) {
+    this.formData.projects.splice(index, 1);
+  }
+
+  // Handle project file selection
+  onProjectFileSelected(event: any, projectIndex: number) {
+    const file = event.target.files[0];
+    if (file && this.formData.projects[projectIndex]) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.formData.projects[projectIndex].image = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
 
   goToLogin() {
     this.router.navigate(['/login']);

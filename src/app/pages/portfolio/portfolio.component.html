@@ -61,6 +61,21 @@
   
       </section>
   
+  <!-- Skills Section -->
+  <section *ngIf="portfolio?.skills && portfolio.skills.length > 0" class="mt-12">
+    <div class="text-center mb-8">
+      <h2 class="text-3xl font-bold text-white mb-4">My Skills</h2>
+      <p class="text-gray-300">Technologies and tools I work with</p>
+    </div>
+    
+    <div class="flex flex-wrap justify-center gap-3">
+      <span *ngFor="let skill of portfolio.skills" 
+            class="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-blue-700 transition-colors">
+        {{ skill }}
+      </span>
+    </div>
+  </section>
+
   
     </div>
 

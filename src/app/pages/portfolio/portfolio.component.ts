@@ -38,12 +38,30 @@ export class PortfolioComponent implements OnInit, OnDestroy {
     }
     
     const user = this.auth.getCurrentUser();
+    console.log('Portfolio: Current user:', user);
+    
     if (user) {
-      // Get data from AuthService in-memory storage
-      this.portfolio = this.auth.getUserByUsername(user);
+      // First try to get localStorage user (has skills)
+      const email = this.auth.getCurrentUserEmail();
+      console.log('Portfolio: Current email:', email);
+      
+      // Debug: Check what's in localStorage
+      const allUsers = JSON.parse(localStorage.getItem('PORTFOLIO_USERS') || '{}');
+      console.log('Portfolio: All users in localStorage:', allUsers);
+      
+      this.portfolio = email ? this.auth.getUserByEmail(email) : null;
+      console.log('Portfolio: User from localStorage:', this.portfolio);
+      console.log('Portfolio: User skills:', this.portfolio?.skills);
+      
+      // If not found by email, try by username
+      if (!this.portfolio) {
+        this.portfolio = this.auth.getUserByUsername(user);
+        console.log('Portfolio: User from username:', this.portfolio);
+        console.log('Portfolio: User skills from username:', this.portfolio?.skills);
+      }
       
       if (!this.portfolio) {
-        // User not found, redirect to login
+        console.log('Portfolio: User not found, redirecting to login');
         this.router.navigate(['/login']);
       }
     }

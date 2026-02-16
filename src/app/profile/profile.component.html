@@ -10,6 +10,16 @@
         class="bg-purple-600 text-white w-full py-2 rounded-lg mb-6 hover:bg-purple-700">
         + Create Project
       </button>
+      <button (click)="addSkill()"
+      
+        class="bg-pink-600 text-white w-full py-2 rounded-lg mb-6 hover:bg-pink-700">
+        + Add Skill
+      </button>
+      <!-- <button (click)="testDatabaseConnection()"
+      
+        class="bg-green-600 text-white w-full py-2 rounded-lg mb-6 hover:bg-green-700">
+        Test DB Connection
+      </button> -->
 
       <ul class="space-y-4 text-white text-sm">
         <li class="font-semibold text-white">Dashboard</li>
@@ -105,6 +115,51 @@
       </div>
     </div>
 
+    <!-- Skills Section -->
+    <div class="bg-purple-100 p-6 rounded-2xl mb-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-gray-800">Skills</h3>
+        <button (click)="addSkill()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 text-sm">
+          + Add Skill
+        </button>
+      </div>
+      
+      <div class="flex flex-wrap gap-2 mb-4" *ngIf="user?.skills as skills; else noSkills">
+        <span *ngFor="let skill of skills" 
+              class="bg-purple-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+          {{ skill }}
+          <button (click)="removeSkill(skill)" class="hover:text-red-200 font-bold">×</button>
+        </span>
+      </div>
+      
+      <ng-template #noSkills>
+        <div *ngIf="!user?.skills || user?.skills?.length === 0" class="text-gray-500 text-sm">
+          No skills added yet. Click "Add Skill" to get started.
+        </div>
+      </ng-template>
+
+      <!-- Add Skill Modal -->
+      <div *ngIf="showSkillModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg w-96 shadow-xl">
+          <h3 class="text-lg font-bold mb-4">Add New Skill</h3>
+          <input 
+            [(ngModel)]="newSkill" 
+            name="skill"
+            type="text" 
+            placeholder="Enter skill name (e.g., Angular, TypeScript)" 
+            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500 mb-4" />
+          
+          <div class="flex gap-3">
+            <button (click)="saveSkill()" class="flex-1 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+              Add
+            </button>
+            <button (click)="cancelAddSkill()" class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="grid grid-cols-4 gap-4 mb-8">
       <div class="bg-yellow-400 text-white p-4 rounded-xl text-center">

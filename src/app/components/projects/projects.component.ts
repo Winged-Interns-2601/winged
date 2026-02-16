@@ -50,14 +50,14 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     this.projectsService.addProject(title, tech, image);
   }
 
-  deleteProject(id: string) {
+  deleteProject(id: string | number) {
     if (confirm('Are you sure you want to delete this project?')) {
       this.projectsService.deleteProject(id);
     }
   }
 
   startEdit(project: Project) {
-    this.editingId = project.id || null;
+    this.editingId = project.id?.toString() || null;
     this.editProject = { ...project };
   }
 
