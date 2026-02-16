@@ -6,7 +6,7 @@ export interface Project {
   title: string;
   tech: string;
   image: string;
-  id?: string;
+  id?: number | string; // Support both number (database) and string (localStorage)
 }
 
 @Injectable({
@@ -17,7 +17,7 @@ export class ProjectsService {
   private projectsSubject = new BehaviorSubject<Project[]>([]);
   public projects$: Observable<Project[]> = this.projectsSubject.asObservable();
   private STORAGE_KEY = 'PORTFOLIO_PROJECTS';
-  private API_URL = 'http://localhost:3000/api/projects'; // Change to your API URL
+  private API_URL = 'http://localhost:8080/api/projects'; // Same backend port as employee service
 
   constructor(private http: HttpClient) {
     this.loadProjects();
@@ -53,7 +53,9 @@ export class ProjectsService {
     const defaultProjects: Project[] = [
       { id: '1', title: 'Resume Analyzer', tech: 'HTML • CSS • JS', image: 'assets/img10.jpg' },
       { id: '2', title: 'Daily Expense Tracker', tech: 'Angular • TypeScript', image: 'assets/img9.jpg' },
-      { id: '3', title: 'Portfolio Website', tech: 'Angular • Tailwind', image: 'assets/img12.jpg' }
+      { id: '3', title: 'Portfolio Website', tech: 'Angular • Tailwind', image: 'assets/img12.jpg' },
+      { id: '4', title: 'Task Management App', tech: 'React • Node.js • MongoDB', image: 'assets/img13.jpg' },
+      { id: '5', title: 'Weather Dashboard', tech: 'Vue.js • API • Chart.js', image: 'assets/img14.jpg' }
     ];
     this.projectsSubject.next(defaultProjects);
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(defaultProjects));
@@ -89,7 +91,7 @@ export class ProjectsService {
     ).subscribe();
   }
 
-  updateProject(id: string, title: string, tech: string, image: string): void {
+  updateProject(id: string | number, title: string, tech: string, image: string): void {
     this.http.put<Project>(`${this.API_URL}/${id}`, { title, tech, image }).pipe(
       tap(updatedProject => {
         const projects = this.getProjects();
@@ -115,19 +117,19 @@ export class ProjectsService {
     ).subscribe();
   }
 
-  deleteProject(id: string): void {
+  deleteProject(id: string | number): void {
+    // Immediately update local state and storage for better UX
+    const projects = this.getProjects().filter(p => p.id !== id);
+    this.projectsSubject.next(projects);
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(projects));
+
+    // Try API call in background
     this.http.delete<void>(`${this.API_URL}/${id}`).pipe(
       tap(() => {
-        const projects = this.getProjects().filter(p => p.id !== id);
-        this.projectsSubject.next(projects);
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(projects));
+        // Already handled above
       }),
       catchError(error => {
-        console.error('Error deleting project', error);
-        // Fallback: delete from localStorage
-        const projects = this.getProjects().filter(p => p.id !== id);
-        this.projectsSubject.next(projects);
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(projects));
+        console.warn('API not available, using localStorage only', error);
         return of(null);
       })
     ).subscribe();

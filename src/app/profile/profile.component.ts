@@ -75,10 +75,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-  editingId: string | null = null;
+  editingId: string | number | null = null;
   editProject = { title: '', tech: '', image: '' };
 
-  deleteProject(id: string) {
+  deleteProject(id: string | number) {
     if (confirm('Are you sure you want to delete this project?')) {
       this.projectsService.deleteProject(id);
     }
