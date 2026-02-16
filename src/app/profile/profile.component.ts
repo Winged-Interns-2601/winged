@@ -20,6 +20,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
   projects: Project[] = [];
   user: PortfolioUser | null = null;
   private subscription: Subscription | null = null;
+  portfolioId: number | null = null;  // Track portfolio ID for backend updates
+  
+  // Skill management properties
+  showSkillModal: boolean = false;
+  newSkill: string = '';
 
   constructor(
     private router: Router,
@@ -98,17 +103,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.subscription = this.projectsService.projects$.subscribe(projects => {
       this.projects = projects;
     });
-
-    // Load skills from localStorage
-    this.loadSkillsFromStorage();
-
-    // Check if navigation state indicates skills modal should open
-    const nav = this.router.getCurrentNavigation();
-    const openSkills = nav?.extras?.state?.['openSkills'];
-    if (openSkills) {
-      this.openSkillModal();
-    }
-
   }
 
   ngOnDestroy() {
@@ -169,7 +163,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
@@ -198,15 +191,171 @@ export class ProfileComponent implements OnInit, OnDestroy {
     
     // Open edit dialog for new project
     this.startEdit(newProject);
-    // document.getElementById('project')?.scrollIntoView({ behavior: 'smooth' });
-
-
   }
-
 
   showMenu = false;
 
-toggleMenu() {
-  this.showMenu = !this.showMenu;
-}
+  toggleMenu() {
+    this.showMenu = !this.showMenu;
+  }
+
+  // Skill management methods
+  addSkill() {
+    this.newSkill = '';
+    this.showSkillModal = true;
+  }
+
+  saveSkill() {
+    const trimmedSkill = this.newSkill.trim();
+    
+    if (!trimmedSkill) {
+      alert('Please enter a valid skill name');
+      return;
+    }
+    
+    if (this.user) {
+      if (!this.user.skills) {
+        this.user.skills = [];
+      }
+      
+      // Check if skill already exists
+      if (this.user.skills.includes(trimmedSkill)) {
+        alert('This skill already exists!');
+        return;
+      }
+      
+      // Check skill length (backend allows max 20 skills, each reasonable length)
+      if (this.user.skills.length >= 20) {
+        alert('Maximum 20 skills allowed!');
+        return;
+      }
+      
+      // Add the skill
+      this.user.skills.push(trimmedSkill);
+      
+      // Save to backend via PortfolioService
+      this.saveSkillsToBackend();
+    }
+  }
+
+  removeSkill(skill: string) {
+    if (this.user && this.user.skills) {
+      const index = this.user.skills.indexOf(skill);
+      if (index > -1) {
+        const removedSkill = this.user.skills[index];
+        
+        // Remove the skill
+        this.user.skills.splice(index, 1);
+        
+        // Save to backend via PortfolioService
+        this.saveSkillsToBackend();
+      }
+    }
+  }
+
+  saveSkillsToBackend() {
+    if (!this.user) return;
+
+    // Prepare portfolio data for backend
+    const portfolioData = {
+      skills: this.user.skills,
+      designation: this.user.designation || '',
+      projects: this.projects || []
+    };
+
+    console.log('🔄 Attempting to save skills to backend...');
+    console.log('📤 Portfolio data being sent:', JSON.stringify(portfolioData, null, 2));
+    console.log('🏢 Backend API:', 'http://localhost:8080/api/portfolio');
+    console.log('🌐 Checking if backend is reachable...');
+
+    // First check if backend is reachable
+    fetch('http://localhost:8080/api/portfolio')
+      .then(response => {
+        console.log('✅ Backend is reachable! Status:', response.status);
+        this.actualSaveToBackend(portfolioData);
+      })
+      .catch(error => {
+        console.error('❌ Backend is NOT reachable:', error);
+        console.log('🔄 Falling back to localStorage...');
+        this.fallbackToLocalStorage();
+      });
+  }
+
+  actualSaveToBackend(portfolioData: any) {
+    if (this.portfolioId) {
+      // Update existing portfolio
+      console.log('📝 Updating existing portfolio ID:', this.portfolioId);
+      this.portfolioService.updatePortfolio(this.portfolioId, portfolioData).subscribe({
+        next: (response) => {
+          console.log('✅ Skills saved to backend successfully!');
+          console.log('📥 Backend response:', response);
+          this.cancelAddSkill();
+        },
+        error: (error) => {
+          console.error('❌ Error saving skills to backend:', error);
+          console.log('📄 Full error details:', JSON.stringify(error, null, 2));
+          console.log('🔄 Falling back to localStorage...');
+          this.fallbackToLocalStorage();
+        }
+      });
+    } else {
+      // Create new portfolio first
+      const employeeId = (this.user as any).employeeId || 1;
+      console.log('➕ Creating new portfolio for employee ID:', employeeId);
+      this.portfolioService.addPortfolio(employeeId, portfolioData).subscribe({
+        next: (response: any) => {
+          this.portfolioId = response?.id || null;
+          console.log('✅ Portfolio created and skills saved to backend!');
+          console.log('📥 Backend response:', response);
+          console.log('🆔 New portfolio ID:', this.portfolioId);
+          this.cancelAddSkill();
+        },
+        error: (error) => {
+          console.error('❌ Error creating portfolio:', error);
+          console.log('📄 Full error details:', JSON.stringify(error, null, 2));
+          console.log('🔄 Falling back to localStorage...');
+          this.fallbackToLocalStorage();
+        }
+      });
+    }
+  }
+
+  fallbackToLocalStorage() {
+    if (this.user && this.user.email) {
+      this.auth.updateUserSkills(this.user.email, this.user.skills || []);
+      console.log('💾 Skills saved to localStorage as fallback');
+    }
+    this.cancelAddSkill();
+  }
+
+  cancelAddSkill() {
+    this.showSkillModal = false;
+    this.newSkill = '';
+  }
+
+  // Test method to verify database connection
+  testDatabaseConnection() {
+    console.log('🔍 Testing database connection...');
+    
+    if (this.user) {
+      const employeeId = (this.user as any).employeeId || 1;
+      console.log('📋 Getting portfolio for employee ID:', employeeId);
+      
+      this.portfolioService.getPortfolio(employeeId).subscribe({
+        next: (portfolios) => {
+          console.log('✅ Database connection successful!');
+          console.log('📊 Current portfolios from database:', portfolios);
+          if (portfolios && portfolios.length > 0) {
+            console.log('🎯 Skills in database:', portfolios[0]?.skills || 'No skills found');
+          } else {
+            console.log('🎯 No portfolios found in database');
+          }
+        },
+        error: (error) => {
+          console.error('❌ Database connection failed:', error);
+          console.log('💡 Make sure Spring Boot backend is running on http://localhost:8080');
+        }
+      });
+    }
+  }
 }

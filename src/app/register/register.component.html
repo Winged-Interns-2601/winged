@@ -39,9 +39,8 @@
         </div>
 
         <form (ngSubmit)="register()">
-
-        <!--step1-->
-<div *ngIf="currentStep === 1" class="grid grid-cols-2 gap-3 text-sm">
+          <!--step1-->
+          <div *ngIf="currentStep === 1" class="grid grid-cols-2 gap-3 text-sm">
 
   <div>
     <label class="label block text-sm font-medium text-gray-600 mb-1">First Name</label>
@@ -142,180 +141,61 @@
 </div>
 
 
-<!-- STEP 4 : SKILLS -->
-<div *ngIf="currentStep === 4" class="space-y-3">
+<!-- STEP 4 : DESIGNATION & SKILLS -->
+<div *ngIf="currentStep === 4" class="space-y-6">
+  
+  <!-- Designation -->
+  <div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Designation</label>
+    <input type="text" 
+           [(ngModel)]="formData.designation" 
+           name="designation"
+           class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+           placeholder="Enter your designation"
+           required>
+  </div>
 
-  <h5 class="fw-semibold">Add Skills</h5>
-
-  <div class="input-group mb-3">
+  <div class="border-t border-gray-200 pt-4">
+    <h5 class="text-lg font-medium text-gray-900 mb-3">Add Skills</h5>
+    <div class="flex gap-2 mb-4">
     <input
       [(ngModel)]="newSkill"
       (keyup.enter)="addSkill()"
       name="skillInput"
-      class="form-control"
+      class="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
       placeholder="Enter skill">
-
     <button
       type="button"
       (click)="addSkill()"
-      class="btn btn-primary">
+      class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
       Add
     </button>
   </div>
 
   <!-- Chips -->
-  <div>
+  <div class="flex flex-wrap gap-2">
     <span
-      *ngFor="let skill of skills"
-      class="badge rounded-pill bg-primary me-2 mb-2 px-3 py-2">
-
+      *ngFor="let skill of formData.skills"
+      class="inline-flex items-center bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded-full">
       {{ skill }}
-
       <button
         type="button"
         (click)="removeSkill(skill)"
-        class="btn-close btn-close-white ms-2"
-        style="font-size:10px;">
+        class="inline-flex items-center p-0.5 ms-2 text-blue-800 bg-transparent rounded-full hover:bg-blue-200"
+        aria-label="Remove skill">
+        <svg class="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+        </svg>
       </button>
-
     </span>
   </div>
 
 </div>
-
+</div>
 
 
 <!-- STEP 4 : SKILLS -->
-<div *ngIf="currentStep === 4" class="text-sm">
-  <div class="mb-4 gap-2 flex flex-col">
-      <div>
-    <label class="label block text-sm font-medium text-gray-600 mb-1">Designation</label>
-    <input class="input-sm " [(ngModel)]="formData.designation" name="designation">
-  </div>
-    <label class="label block text-sm font-medium text-gray-600 mb-2">Skills</label>
-    <p class="text-xs text-gray-500 mb-3">Add your technical skills (e.g., Angular, TypeScript, React)</p>
-    
-    <!-- Add skill input -->
-    <div class="flex gap-2 mb-3">
-      <input 
-        type="text" 
-        class="input-sm flex-1" 
-        [(ngModel)]="newSkill" 
-        name="newSkill"
-        placeholder="Enter a skill"
-        (keyup.enter)="addSkill()" />
-      <button 
-        type="button"
-        (click)="addSkill()" 
-        class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700">
-        Add
-      </button>
-    </div>
-    
-    <!-- Skills display -->
-    <div class="flex flex-wrap gap-2" *ngIf="formData.skills.length > 0">
-      <span 
-        *ngFor="let skill of formData.skills" 
-        class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
-        {{ skill }}
-        <button 
-          type="button"
-          (click)="removeSkill(skill)" 
-          class="text-blue-600 hover:text-red-600 font-bold">
-          ×
-        </button>
-      </span>
-    </div>
-    
-    <div *ngIf="formData.skills.length === 0" class="text-gray-500 text-sm">
-    </div>
-  </div>
 
-  <!-- Projects Section -->
-  <div class="mb-4">
-    <label class="label block text-sm font-medium text-gray-600 mb-2">Projects (Optional)</label>
-    
-    <!-- Add project button -->
-    <button 
-      type="button"
-      (click)="addProject()" 
-      class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 mb-3">
-      + Add Project
-    </button>
-    
-    <!-- Projects list -->
-    <div class="space-y-4" *ngIf="formData.projects.length > 0">
-      <div 
-        *ngFor="let project of formData.projects; let i = index" 
-        class="relative flex bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
-        
-        <!-- Project preview image area -->
-        <div class="w-40 h-28 bg-gray-100 flex items-center justify-center">
-          <img 
-            *ngIf="project.image" 
-            [src]="project.image" 
-            class="w-full h-full object-cover" 
-            alt="Project preview">
-          <div *ngIf="!project.image" class="text-gray-400 text-center">
-            <div class="text-2xl mb-1">📷</div>
-            <div class="text-xs">No image</div>
-          </div>
-        </div>
-
-
-        <!-- Project details -->
-        <div class="p-4 flex-1">
-          <div class="space-y-3">
-            <div>
-              <label class="block text-sm font-semibold mb-1">Project Title</label>
-              <input 
-                [(ngModel)]="project.title" 
-                name="projectTitle{{i}}"
-                type="text" 
-                placeholder="Enter project title" 
-                class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500 text-sm" />
-            </div>
-            
-            <div>
-              <label class="block text-sm font-semibold mb-1">Tech Stack</label>
-              <input 
-                [(ngModel)]="project.tech" 
-                name="projectTech{{i}}"
-                type="text" 
-                placeholder="e.g., Angular • TypeScript • Tailwind" 
-                class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500 text-sm" />
-            </div>
-            
-            <div>
-              <label class="block text-sm font-semibold mb-1">Project Image</label>
-              <input 
-                (change)="onProjectFileSelected($event, i)"
-                type="file" 
-                accept="image/*"
-                name="projectImageFile{{i}}"
-                class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500 text-sm" />
-              <p class="text-xs text-gray-500 mt-1">Upload an image for your project</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Remove button -->
-        <div class="absolute top-2 right-2">
-          <button 
-            type="button"
-            (click)="removeProject(i)" 
-            class="p-2 bg-white rounded-full text-red-600 hover:bg-gray-100 shadow-md">
-            🗑
-          </button>
-        </div>
-      </div>
-    </div>
-    
-    <div *ngIf="formData.projects.length === 0" class="text-gray-500 text-sm">
-      No projects added. Click "Add Project" to showcase your work.
-    </div>
-  </div>
-</div>
 
         </form>
 
@@ -330,13 +210,13 @@
 
   <div class="flex-1"></div>
 
-          <button *ngIf="currentStep < 3"
+          <button *ngIf="currentStep < 4"
             (click)="nextStep()"
             class="px-6 py-2 bg-green-600 text-white rounded">
             Next →
           </button>
 
-          <button *ngIf="currentStep === 3"
+          <button *ngIf="currentStep === 4"
             (click)="register()"
             class="px-6 py-2 bg-green-600 text-white rounded">
             Register
@@ -351,7 +231,4 @@
               Login here
             </button>
           </p>
-      </div>
-    </div>
-  </div>
-</div>
+        </div>

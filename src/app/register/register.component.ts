@@ -22,30 +22,29 @@ export class RegisterComponent {
   successMessage = '';
 
   formData = {
-  firstName: '',
-  middleName: '',
-  lastName: '',
-  email: '',
-  phone: '',
-  address: '',      // street
-  city: '',         // NEW
-  state: '',        // NEW
-  country: '',      // NEW
-  pinCode: '',      // NEW
-  designation: '',
-  employeeType: '',
-  panNo: '',
-  aadharNo: '',
-  joiningDate: '',
-  exitDate: '',
-  username: '',
-  password: '',
-  skills: [] as string[],  // Step 4: Skills
-  projects: [] as Array<{title: string, tech: string, image: string}>  // Step 4: Projects
-};
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: '',      // street
+    city: '',         // NEW
+    state: '',        // NEW
+    country: '',      // NEW
+    pinCode: '',      // NEW
+    designation: '',
+    employeeType: '',
+    panNo: '',
+    aadharNo: '',
+    joiningDate: '',
+    exitDate: '',
+    username: '',
+    password: '',
+    skills: [] as string[],  // Step 4: Skills
+    projects: [] as Array<{id?: string, title: string, tech: string, image: string, description?: string}>  // Step 4: Projects
+  };
 
-skills: string[] = [];
-newSkill = '';
+  newSkill = '';
 
 
   constructor(
@@ -84,7 +83,7 @@ register() {
 
   // Map form data to match Spring Boot entity structure
  const payload = {
-  skills: this.skills,
+  skills: this.formData.skills,
   employeeId: Math.floor(Date.now()),
   firstName: this.formData.firstName,
   middleName: this.formData.middleName || '',
@@ -153,11 +152,10 @@ register() {
 }
 
   // Skill management methods for step 4
-  newSkill: string = '';
-
   addSkill() {
-    if (this.newSkill.trim() && !this.formData.skills.includes(this.newSkill.trim())) {
-      this.formData.skills.push(this.newSkill.trim());
+    const skill = this.newSkill.trim();
+    if (skill && !this.formData.skills.includes(skill)) {
+      this.formData.skills.push(skill);
       this.newSkill = '';
     }
   }
@@ -174,7 +172,8 @@ register() {
     const newProject = {
       title: '',
       tech: '',
-      image: ''
+      image: '',
+      description: ''
     };
     this.formData.projects.push(newProject);
   }
@@ -198,43 +197,4 @@ register() {
   goToLogin() {
     this.router.navigate(['/login']);
   }
-
-  register1() {
-  this.employeeService.createUser(this.formData).subscribe({
-    next: () => {
-      this.successMessage = 'Employee registered successfully';
-    },
-    error: () => {
-      this.errorMessage = 'Registration failed';
-    }
-  });
-}
-
-addSkill() {
-  const skill = this.newSkill.trim();
-
-  if (skill && !this.skills.includes(skill)) {
-    this.skills.push(skill);
-    this.saveSkillsToStorage();
-  }
-
-  this.newSkill = '';
-}
-
-removeSkill(skill: string) {
-  this.skills = this.skills.filter(s => s !== skill);
-  this.saveSkillsToStorage();
-}
-
-saveSkillsToStorage() {
-  localStorage.setItem('registration_skills', JSON.stringify(this.skills));
-}
-
-loadSkillsFromStorage() {
-  const storedSkills = localStorage.getItem('registration_skills');
-  if (storedSkills) {
-    this.skills = JSON.parse(storedSkills);
-  }
-}
-
 }
