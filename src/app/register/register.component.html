@@ -23,7 +23,7 @@
 
         <h2 class="text-2xl font-bold text-center">Register</h2>
         <p class="text-sm text-center text-gray-500">
-          Step {{ currentStep }} of 3
+          Step {{ currentStep }} of 4
         </p>
 
         <!-- ERROR -->
@@ -145,30 +145,77 @@
 </div>
 
 
+<!-- STEP 4 : SKILLS -->
+<div *ngIf="currentStep === 4" class="space-y-3">
+
+  <h5 class="fw-semibold">Add Skills</h5>
+
+  <div class="input-group mb-3">
+    <input
+      [(ngModel)]="newSkill"
+      (keyup.enter)="addSkill()"
+      name="skillInput"
+      class="form-control"
+      placeholder="Enter skill">
+
+    <button
+      type="button"
+      (click)="addSkill()"
+      class="btn btn-primary">
+      Add
+    </button>
+  </div>
+
+  <!-- Chips -->
+  <div>
+    <span
+      *ngFor="let skill of skills"
+      class="badge rounded-pill bg-primary me-2 mb-2 px-3 py-2">
+
+      {{ skill }}
+
+      <button
+        type="button"
+        (click)="removeSkill(skill)"
+        class="btn-close btn-close-white ms-2"
+        style="font-size:10px;">
+      </button>
+
+    </span>
+  </div>
+
+</div>
+
+
+
+
         </form>
 
         <!-- NAVIGATION -->
-        <div class="flex justify-between mt-6">
-          <button *ngIf="currentStep > 1"
-            (click)="prevStep()"
-            class="px-4 py-2 bg-gray-300 rounded">
-            ← Back
-          </button>
+<div class="flex justify-between mt-6">
 
-          <div class="flex-1"></div>
+  <button *ngIf="currentStep > 1"
+    (click)="prevStep()"
+    class="px-4 py-2 bg-gray-300 rounded">
+    ← Back
+  </button>
 
-          <button *ngIf="currentStep < 3"
-            (click)="nextStep()"
-            class="px-6 py-2 bg-green-600 text-white rounded">
-            Next →
-          </button>
+  <div class="flex-1"></div>
 
-          <button *ngIf="currentStep === 3"
-            (click)="register()"
-            class="px-6 py-2 bg-green-600 text-white rounded">
-            Register
-          </button>
-        </div>
+  <button *ngIf="currentStep < 4"
+    (click)="nextStep()"
+    class="px-6 py-2 bg-green-600 text-white rounded">
+    Next →
+  </button>
+
+  <button *ngIf="currentStep === 4"
+    (click)="register()"
+    class="px-6 py-2 bg-green-600 text-white rounded">
+    Register
+  </button>
+
+</div>
+
 
         <div class="text-center mt-4">
           <p class="text-sm text-gray-500">

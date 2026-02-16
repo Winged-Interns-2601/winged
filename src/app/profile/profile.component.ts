@@ -20,6 +20,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
   user: PortfolioUser | null = null;
   private subscription: Subscription | null = null;
 
+  skills: string[] = [];
+  showSkillModal = false;
+  newSkill = '';
+
   constructor(
     private router: Router,
     private auth: AuthService,
@@ -67,6 +71,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.subscription = this.projectsService.projects$.subscribe(projects => {
       this.projects = projects;
     });
+
+    // Load skills from localStorage
+    this.loadSkillsFromStorage();
+
+    // Check if navigation state indicates skills modal should open
+    const nav = this.router.getCurrentNavigation();
+    const openSkills = nav?.extras?.state?.['openSkills'];
+    if (openSkills) {
+      this.openSkillModal();
+    }
+
   }
 
   ngOnDestroy() {
@@ -167,4 +182,41 @@ export class ProfileComponent implements OnInit, OnDestroy {
 toggleMenu() {
   this.showMenu = !this.showMenu;
 }
+
+openSkillModal() {
+  this.showSkillModal = true;
+}
+
+closeSkillModal() {
+  this.showSkillModal = false;
+  this.newSkill = '';
+}
+
+addSkill() {
+  const skill = this.newSkill.trim();
+
+  if (skill && !this.skills.includes(skill)) {
+    this.skills.push(skill);
+    this.saveSkillsToStorage();
+  }
+
+  this.newSkill = '';
+}
+
+removeSkill(skill: string) {
+  this.skills = this.skills.filter(s => s !== skill);
+  this.saveSkillsToStorage();
+}
+
+saveSkillsToStorage() {
+  localStorage.setItem('skills', JSON.stringify(this.skills));
+}
+
+loadSkillsFromStorage() {
+  const storedSkills = localStorage.getItem('skills');
+  if (storedSkills) {
+    this.skills = JSON.parse(storedSkills);
+  }
+}
+
 }

@@ -41,15 +41,22 @@ export class RegisterComponent {
   password: ''
 };
 
+skills: string[] = [];
+newSkill = '';
+
+
   constructor(
     private employeeService: EmployeeService,
     private auth: AuthService,
     private router: Router,
     private isLoggedService: IsLoggedService
-  ) {}
+  ) {
+    // Load any previously saved skills
+    this.loadSkillsFromStorage();
+  }
 
   nextStep() {
-    if (this.currentStep < 3) {
+    if (this.currentStep < 4) {
       this.currentStep++;
       this.errorMessage = '';
     }
@@ -77,6 +84,7 @@ register() {
 
   // Map form data to match Spring Boot entity structure
  const payload = {
+  skills: this.skills,
   employeeId: Math.floor(Date.now()),
   firstName: this.formData.firstName,
   middleName: this.formData.middleName || '',
@@ -130,6 +138,10 @@ register() {
       });
 
       this.auth.login(username, email);
+      
+      // Save skills to main storage for profile component
+      localStorage.setItem('skills', JSON.stringify(this.skills));
+      
       setTimeout(() => this.router.navigate(['/portfolio']), 1200);
     },
     error: (err) => {
@@ -151,6 +163,33 @@ register() {
       this.errorMessage = 'Registration failed';
     }
   });
+}
+
+addSkill() {
+  const skill = this.newSkill.trim();
+
+  if (skill && !this.skills.includes(skill)) {
+    this.skills.push(skill);
+    this.saveSkillsToStorage();
+  }
+
+  this.newSkill = '';
+}
+
+removeSkill(skill: string) {
+  this.skills = this.skills.filter(s => s !== skill);
+  this.saveSkillsToStorage();
+}
+
+saveSkillsToStorage() {
+  localStorage.setItem('registration_skills', JSON.stringify(this.skills));
+}
+
+loadSkillsFromStorage() {
+  const storedSkills = localStorage.getItem('registration_skills');
+  if (storedSkills) {
+    this.skills = JSON.parse(storedSkills);
+  }
 }
 
 }
