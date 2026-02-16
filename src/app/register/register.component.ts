@@ -44,12 +44,15 @@ export class RegisterComponent {
   projects: [] as Array<{title: string, tech: string, image: string}>  // Step 4: Projects
 };
 
+skills: string[] = [];
+newSkill = '';
+
+
   constructor(
     private employeeService: EmployeeService,
     private auth: AuthService,
     private router: Router,
-    private isLoggedService: IsLoggedService,
-    private projectsService: ProjectsService
+    private isLoggedService: IsLoggedService
   ) {}
 
   nextStep() {
@@ -81,6 +84,7 @@ register() {
 
   // Map form data to match Spring Boot entity structure
  const payload = {
+  skills: this.skills,
   employeeId: Math.floor(Date.now()),
   firstName: this.formData.firstName,
   middleName: this.formData.middleName || '',
@@ -140,21 +144,6 @@ register() {
       });
 
       this.auth.login(username, email);
-      
-      // Save projects to ProjectsService
-      if (this.formData.projects.length > 0) {
-        this.formData.projects.forEach(project => {
-          if (project.title && project.tech) {
-            this.projectsService.addProject(
-              project.title,
-              project.tech,
-              project.image || 'assets/default-project.jpg'
-            );
-          }
-        });
-        console.log('Registration: Projects saved to ProjectsService:', this.formData.projects);
-      }
-      
       setTimeout(() => this.router.navigate(['/portfolio']), 1200);
     },
     error: (err) => {
@@ -219,6 +208,33 @@ register() {
       this.errorMessage = 'Registration failed';
     }
   });
+}
+
+addSkill() {
+  const skill = this.newSkill.trim();
+
+  if (skill && !this.skills.includes(skill)) {
+    this.skills.push(skill);
+    this.saveSkillsToStorage();
+  }
+
+  this.newSkill = '';
+}
+
+removeSkill(skill: string) {
+  this.skills = this.skills.filter(s => s !== skill);
+  this.saveSkillsToStorage();
+}
+
+saveSkillsToStorage() {
+  localStorage.setItem('registration_skills', JSON.stringify(this.skills));
+}
+
+loadSkillsFromStorage() {
+  const storedSkills = localStorage.getItem('registration_skills');
+  if (storedSkills) {
+    this.skills = JSON.parse(storedSkills);
+  }
 }
 
 }

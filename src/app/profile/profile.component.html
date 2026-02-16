@@ -21,6 +21,12 @@
         Test DB Connection
       </button> -->
 
+      <button (click)="openSkillModal()"
+      
+        class="bg-pink-500 text-white w-full py-2 rounded-lg mb-6 hover:bg-pink-600">
+        + Add Skills
+      </button>
+
       <ul class="space-y-4 text-white text-sm">
         <li class="font-semibold text-white">Dashboard</li>
         <li>Editor</li>
@@ -177,7 +183,25 @@
     </div>
 
     <!-- Projects -->
+     <div>
+
+
     <div class="space-y-4">
+  <h2 class="text-lg font-semibold">Skills</h2>
+
+  <div class="flex flex-wrap gap-2">
+    <span
+      *ngFor="let skill of skills"
+      class="bg-purple-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+      {{ skill }}
+      <button (click)="removeSkill(skill)">✕</button>
+    </span>
+  </div>
+</div>
+
+
+    <div class="space-y-4">
+      <h2>Projects</h2>
       <div *ngFor="let project of projects"
         class="relative flex bg-white rounded-xl shadow-md overflow-hidden">
 
@@ -201,9 +225,10 @@
       </div>
     </div>
 
+    </div>
 
 
-    <!-- Edit Modal -->
+    <!-- Edit Modal project -->
     <div *ngIf="editingId !== null" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div class="bg-white p-8 rounded-lg w-96 shadow-xl">
         <h2 class="text-2xl font-bold mb-6">Edit Project</h2>
@@ -250,6 +275,44 @@
         </div>
       </div>
     </div>
+    
+<div *ngIf="showSkillModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="bg-white p-6 rounded-lg w-96 shadow-xl">
+
+    <h2 class="text-xl font-bold mb-4">Add Skill</h2>
+
+    <div class="flex gap-2">
+      <input
+        [(ngModel)]="newSkill"
+        (keyup.enter)="addSkill()"
+        type="text"
+        placeholder="Enter skill..."
+        class="flex-1 p-2 border rounded" />
+
+      <button
+        (click)="addSkill()"
+        class="bg-purple-600 text-white px-4 rounded">
+        Add
+      </button>
+    </div>
+
+    <div class="flex flex-wrap gap-2 mt-4">
+      <span
+        *ngFor="let skill of skills"
+        class="bg-gray-200 px-3 py-1 rounded-full text-sm">
+        {{ skill }}
+      </span>
+    </div>
+
+    <button
+      (click)="closeSkillModal()"
+      class="mt-4 w-full bg-gray-300 py-2 rounded">
+      Done
+    </button>
+
+  </div>
+</div>
+
 
   </main>
 </div>
