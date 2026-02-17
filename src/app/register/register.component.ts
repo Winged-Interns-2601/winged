@@ -21,28 +21,43 @@ export class RegisterComponent {
   errorMessage = '';
   successMessage = '';
 
-  formData = {
-    firstName: '',
-    middleName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',      // street
-    city: '',         // NEW
-    state: '',        // NEW
-    country: '',      // NEW
-    pinCode: '',      // NEW
-    designation: '',
-    employeeType: '',
-    panNo: '',
-    aadharNo: '',
-    joiningDate: '',
-    exitDate: '',
-    username: '',
-    password: '',
-    skills: [] as string[],  // Step 4: Skills
-    projects: [] as Array<{id?: string, title: string, tech: string, image: string, description?: string}>  // Step 4: Projects
-  };
+formData = {
+  firstName: '',
+  middleName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  employeeType: '',
+  designation: '',
+  panNo: '',
+  aadharNo: '',
+  joiningDate: '',
+  exitDate: '',
+  password: '',
+
+  address: {
+    street: '',
+    city: '',
+    state: '',
+    country: '',
+    pinCode: ''
+  },
+
+  portfolio: {
+  designation: '',
+  skills: [] as string[],
+  projects: [] as Array<{
+    projectName: string;
+    description: string;
+    techStack: string;
+    startDate?: string;
+    endDate?: string;
+    image?: string;
+  }>
+}
+
+};
+
 
   newSkill = '';
 
@@ -68,7 +83,95 @@ export class RegisterComponent {
     }
   }
 
-register() {
+// register() {
+//   this.errorMessage = '';
+//   this.successMessage = '';
+
+//   if (!this.formData.email || !this.formData.password) {
+//     this.errorMessage = 'Email and Password are required!';
+//     return;
+//   }
+
+//   const email = this.formData.email.toLowerCase().trim();
+//   // const username = this.formData.username.toLowerCase().trim();
+//   const password = this.formData.password;
+
+//   // Map form data to match Spring Boot entity structure
+//  const payload = {
+//   skills: this.formData.portfolio.skills,
+//   employeeId: Math.floor(Date.now()),
+//   firstName: this.formData.firstName,
+//   middleName: this.formData.middleName || '',
+//   lastName: this.formData.lastName,
+//   email,
+//   password: password, // CRITICAL: Add password field
+//   phone: this.formData.phone,
+//   designation: this.formData.designation,
+//   employeeType: this.formData.employeeType,
+//   joiningDate: new Date(this.formData.joiningDate),
+//   exitDate: this.formData.exitDate ? new Date(this.formData.exitDate) : null,
+//   aadharNo: this.formData.aadharNo,
+//   panNO: this.formData.panNo,
+//   address: {
+//   id: null,
+//   street: this.formData.address || '',
+//   city: this.formData.address || '',
+//   state: this.formData.address || '',
+//   country: this.formData.address || '',
+//   pinCode: this.formData.address || ''
+// }
+// };
+
+//   this.employeeService.createUser(payload).subscribe({
+//     next: (response: any) => {
+//       this.successMessage = 'Registration successful!';
+
+//       // Store the created user from backend response (if returned)
+//       if (response) {
+//         localStorage.setItem('LOGGED_IN_USER', JSON.stringify(response));
+//       }
+
+//       this.auth.registerUser(email, username, password, {
+//         firstName: this.formData.firstName,
+//         middleName: this.formData.middleName,
+//         lastName: this.formData.lastName,
+//         phone: this.formData.phone,
+//         address: {
+//   street: this.formData.address.street,
+//   city: this.formData.address.city,
+//   state: this.formData.address.state,
+//   country: this.formData.address.country,
+//   pinCode: this.formData.address.pinCode
+// }
+// ,
+//         designation: this.formData.designation,
+//         employeeType: this.formData.employeeType,
+//         panNO: this.formData.panNo,
+//         aadharNo: this.formData.aadharNo,
+//         joiningDate: this.formData.joiningDate,
+//         exitDate: this.formData.exitDate,
+//         name: `${this.formData.firstName} ${this.formData.lastName}`.trim(),
+//         role: this.formData.designation,
+//         skills: this.formData.portfolio.skills,  // Add skills
+//         projects: [],                  // Initialize empty projects array
+//         contact: {
+//           email: email,
+//           github: ''
+//         }
+//       });
+
+//       this.auth.login(username, email);
+//       setTimeout(() => this.router.navigate(['/portfolio']), 1200);
+//     },
+//     error: (err) => {
+//       this.errorMessage = 'Registration failed: ' + (err.error?.message || err.message || 'Unknown error');
+//     }
+//   });
+// }
+
+  // Skill management methods for step 4
+ 
+ register() {
   this.errorMessage = '';
   this.successMessage = '';
 
@@ -78,117 +181,93 @@ register() {
   }
 
   const email = this.formData.email.toLowerCase().trim();
-  const username = this.formData.username.toLowerCase().trim();
   const password = this.formData.password;
 
-  // Map form data to match Spring Boot entity structure
- const payload = {
-  skills: this.formData.skills,
-  employeeId: Math.floor(Date.now()),
-  firstName: this.formData.firstName,
-  middleName: this.formData.middleName || '',
-  lastName: this.formData.lastName,
-  email,
-  password: password, // CRITICAL: Add password field
-  phone: this.formData.phone,
-  designation: this.formData.designation,
-  employeeType: this.formData.employeeType,
-  joiningDate: new Date(this.formData.joiningDate),
-  exitDate: this.formData.exitDate ? new Date(this.formData.exitDate) : null,
-  aadharNo: this.formData.aadharNo,
-  panNO: this.formData.panNo,
-  address: {
-  id: null,
-  street: this.formData.address || '',
-  city: this.formData.city || '',
-  state: this.formData.state || '',
-  country: this.formData.country || '',
-  pinCode: this.formData.pinCode || ''
-}
-};
+  const payload = {
+    employeeId: Math.floor(Date.now()),
+    firstName: this.formData.firstName,
+    middleName: this.formData.middleName,
+    lastName: this.formData.lastName,
+    email,
+    password,
+    phone: this.formData.phone,
+    designation: this.formData.portfolio.designation,
+    employeeType: this.formData.employeeType,
+    joiningDate: new Date(this.formData.joiningDate),
+    exitDate: this.formData.exitDate
+      ? new Date(this.formData.exitDate)
+      : null,
+    aadharNo: this.formData.aadharNo,
+    panNO: this.formData.panNo,
+
+    address: {
+      street: this.formData.address.street,
+      city: this.formData.address.city,
+      state: this.formData.address.state,
+      country: this.formData.address.country,
+      pinCode: this.formData.address.pinCode
+    },
+
+    portfolio: {
+      designation: this.formData.portfolio.designation,
+      skills: this.formData.portfolio.skills,
+      projects: this.formData.portfolio.projects
+    }
+  };
 
   this.employeeService.createUser(payload).subscribe({
     next: (response: any) => {
       this.successMessage = 'Registration successful!';
-
-      // Store the created user from backend response (if returned)
-      if (response) {
-        localStorage.setItem('LOGGED_IN_USER', JSON.stringify(response));
-      }
-
-      this.auth.registerUser(email, username, password, {
-        firstName: this.formData.firstName,
-        middleName: this.formData.middleName,
-        lastName: this.formData.lastName,
-        phone: this.formData.phone,
-        address: this.formData.address,
-        city: this.formData.city,
-        state: this.formData.state,
-        country: this.formData.country,
-        pinCode: this.formData.pinCode,
-        designation: this.formData.designation,
-        employeeType: this.formData.employeeType,
-        panNO: this.formData.panNo,
-        aadharNo: this.formData.aadharNo,
-        joiningDate: this.formData.joiningDate,
-        exitDate: this.formData.exitDate,
-        name: `${this.formData.firstName} ${this.formData.lastName}`.trim(),
-        role: this.formData.designation,
-        skills: this.formData.skills,  // Add skills
-        projects: [],                  // Initialize empty projects array
-        contact: {
-          email: email,
-          github: ''
-        }
-      });
-
-      this.auth.login(username, email);
-      setTimeout(() => this.router.navigate(['/portfolio']), 1200);
+      localStorage.setItem('LOGGED_IN_USER', JSON.stringify(response));
+      this.router.navigate(['/portfolio']);
     },
     error: (err) => {
-      this.errorMessage = 'Registration failed: ' + (err.error?.message || err.message || 'Unknown error');
+      this.errorMessage =
+        'Registration failed: ' +
+        (err.error?.message || err.message || 'Unknown error');
     }
   });
 }
 
-  // Skill management methods for step 4
+ 
   addSkill() {
     const skill = this.newSkill.trim();
-    if (skill && !this.formData.skills.includes(skill)) {
-      this.formData.skills.push(skill);
+    if (skill && !this.formData.portfolio.skills.includes(skill)) {
+      this.formData.portfolio.skills.push(skill);
       this.newSkill = '';
     }
   }
 
   removeSkill(skill: string) {
-    const index = this.formData.skills.indexOf(skill);
+    const index = this.formData.portfolio.skills.indexOf(skill);
     if (index > -1) {
-      this.formData.skills.splice(index, 1);
+      this.formData.portfolio.skills.splice(index, 1);
     }
   }
 
   // Project management methods for step 4
   addProject() {
     const newProject = {
-      title: '',
-      tech: '',
-      image: '',
-      description: ''
+      projectName: '',
+      description: '',
+      techStack: '',
+      startDate: '',
+      endDate: ''
     };
-    this.formData.projects.push(newProject);
+    this.formData.portfolio.projects.push(newProject);
   }
 
   removeProject(index: number) {
-    this.formData.projects.splice(index, 1);
+    this.formData.portfolio.projects.splice(index, 1);
   }
 
   // Handle project file selection
   onProjectFileSelected(event: any, projectIndex: number) {
     const file = event.target.files[0];
-    if (file && this.formData.projects[projectIndex]) {
+    if (file && this.formData.portfolio.projects[projectIndex]) {
       const reader = new FileReader();
       reader.onload = (e: any) => {
-        this.formData.projects[projectIndex].image = e.target.result;
+        this.formData.portfolio.projects[projectIndex].image = e.target.result;
       };
       reader.readAsDataURL(file);
     }

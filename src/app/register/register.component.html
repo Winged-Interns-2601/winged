@@ -76,27 +76,27 @@
 
   <div>
     <label class="label block text-sm font-medium text-gray-600 mb-1">Street</label>
-    <input class="input-sm" [(ngModel)]="formData.address" name="address">
+    <input class="input-sm" [(ngModel)]="formData.address.street" name="street">
   </div>
 
   <div>
     <label class="label block text-sm font-medium text-gray-600 mb-1">City</label>
-    <input class="input-sm" [(ngModel)]="formData.city" name="city">
+    <input class="input-sm" [(ngModel)]="formData.address.city" name="city">
   </div>
 
   <div>
     <label class="label block text-sm font-medium text-gray-600 mb-1">State</label>
-    <input class="input-sm" [(ngModel)]="formData.state" name="state">
+    <input class="input-sm" [(ngModel)]="formData.address.state" name="state">
   </div>
 
   <div>
     <label class="label block text-sm font-medium text-gray-600 mb-1">Country</label>
-    <input class="input-sm" [(ngModel)]="formData.country" name="country">
+    <input class="input-sm" [(ngModel)]="formData.address.country" name="country">
   </div>
 
   <div>
     <label class="label block text-sm font-medium text-gray-600 mb-1">Pin Code</label>
-    <input class="input-sm" [(ngModel)]="formData.pinCode" name="pinCode">
+    <input class="input-sm" [(ngModel)]="formData.address.pinCode" name="pinCode">
   </div>
 
 
@@ -148,7 +148,7 @@
   <div>
     <label class="block text-sm font-medium text-gray-700 mb-1">Designation</label>
     <input type="text" 
-           [(ngModel)]="formData.designation" 
+           [(ngModel)]="formData.portfolio.designation" 
            name="designation"
            class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
            placeholder="Enter your designation"
@@ -175,7 +175,7 @@
   <!-- Chips -->
   <div class="flex flex-wrap gap-2">
     <span
-      *ngFor="let skill of formData.skills"
+      *ngFor="let skill of formData.portfolio.skills"
       class="inline-flex items-center bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded-full">
       {{ skill }}
       <button
@@ -189,6 +189,8 @@
       </button>
     </span>
   </div>
+
+  
 
 </div>
 </div>
