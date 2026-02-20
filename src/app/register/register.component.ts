@@ -5,7 +5,6 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
 import { IsLoggedService } from '../services/is-logged.service';
 import { EmployeeService } from '../services/employee.service';
-import { ProjectsService } from '../services/projects.service';
 
 @Component({
   selector: 'app-register',
@@ -209,10 +208,17 @@ formData = {
     },
 
     portfolio: {
-      designation: this.formData.portfolio.designation,
-      skills: this.formData.portfolio.skills,
-      projects: this.formData.portfolio.projects
-    }
+    designation: this.formData.portfolio.designation,
+    skills: this.formData.portfolio.skills,
+    projects: this.formData.portfolio.projects.map(p => ({
+    projectName: p.projectName,
+    description: p.description,
+    techStack: p.techStack,
+    startDate: p.startDate ? new Date(p.startDate) : null,
+    endDate: p.endDate ? new Date(p.endDate) : null
+  }))
+}
+
   };
 
   this.employeeService.createUser(payload).subscribe({
@@ -222,10 +228,15 @@ formData = {
       this.router.navigate(['/portfolio']);
     },
     error: (err) => {
-      this.errorMessage =
-        'Registration failed: ' +
-        (err.error?.message || err.message || 'Unknown error');
-    }
+  console.log("BACKEND ERROR:", err);
+  console.log("ERROR BODY:", err.error);
+
+  this.errorMessage =
+    err.error?.message ||
+    JSON.stringify(err.error) ||
+    'Validation failed';
+}
+
   });
 }
 

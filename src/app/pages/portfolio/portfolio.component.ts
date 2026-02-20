@@ -4,6 +4,8 @@ import { NgFor, NgIf } from "@angular/common";
 import { AuthService } from '../../services/auth.service';
 import { IsLoggedService } from '../../services/is-logged.service';
 import { ProjectsService, Project } from '../../services/projects.service';
+import { ProjectService } from '../../services/project.service';
+import { PortfolioService } from '../../services/portfolio.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -22,8 +24,42 @@ export class PortfolioComponent implements OnInit, OnDestroy {
     private auth: AuthService,
     private router: Router,
     private isLoggedService: IsLoggedService,
-    private projectsService: ProjectsService
+    private projectsService: ProjectsService,
+    private projectService: ProjectService,
+    private portfolioService: PortfolioService
   ) { }
+
+  loadProjects(employeeId: number) {
+  this.projectService.getProjects(employeeId).subscribe({
+    next: (projects: any[]) => {
+      const normalized = projects.map(p => ({
+        id: p.id,
+        title: p.title || p.projectName || '',
+        tech: p.tech || p.techStack || '',
+        description: p.description || '',
+        image: p.image || ''
+      }));
+
+      this.projectsService.setProjects(normalized);
+      console.log('Portfolio projects loaded:', normalized);
+    },
+    error: (err) => console.error('Project load failed', err)
+  });
+}
+
+loadPortfolio(employeeId: number) {
+  this.portfolioService.getPortfolio(employeeId).subscribe({
+    next: (res: any) => {
+      const portfolio = Array.isArray(res) ? res[0] : res;
+      this.portfolio = portfolio;
+
+      console.log("Portfolio loaded from backend:", portfolio);
+    },
+    error: (err) => console.error("Portfolio load failed", err)
+  });
+}
+
+
 
   portfolio: any;
 
@@ -36,6 +72,16 @@ export class PortfolioComponent implements OnInit, OnDestroy {
       this.router.navigate(['/login']);
       return;
     }
+
+    const backendUser = this.auth.getLoggedInUser();
+const employeeId = backendUser?.employeeId;
+
+if (employeeId) {
+  this.loadPortfolio(employeeId);   // ← add
+  this.loadProjects(employeeId);    // existing
+}
+
+
     
     const user = this.auth.getCurrentUser();
     console.log('Portfolio: Current user:', user);

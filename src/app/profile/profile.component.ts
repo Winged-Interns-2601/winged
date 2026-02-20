@@ -4,9 +4,12 @@ import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService, PortfolioUser } from '../services/auth.service';
 import { IsLoggedService } from '../services/is-logged.service';
-import { ProjectsService, Project } from '../services/projects.service';
 import { PortfolioService } from '../services/portfolio.service';
+import { ProjectsService } from '../services/projects.service';
+import { ProjectService } from '../services/project.service';
+import type { Project } from '../services/projects.service';
 import { Subscription } from 'rxjs';
+import { skip, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-profile',
@@ -17,162 +20,189 @@ import { Subscription } from 'rxjs';
 })
 export class ProfileComponent implements OnInit, OnDestroy {
 
-  projects: Project[] = [];
+  projects: Project[] = []; // single source of truth for projects (subscribed from ProjectsService)
+  private projectsSub: Subscription | null = null;
   user: PortfolioUser | null = null;
-  private subscription: Subscription | null = null;
   portfolioId: number | null = null;  // Track portfolio ID for backend updates
   
   // Skill management properties
+  showProjectModal = false;
+
   showSkillModal: boolean = false;
   newSkill: string = '';
+formData: any;
 
   constructor(
     private router: Router,
     private auth: AuthService,
     private isLoggedService: IsLoggedService,
+    private portfolioService: PortfolioService,
     private projectsService: ProjectsService,
-    private portfolioService: PortfolioService
+    private projectService: ProjectService
   ) {}
 
-  ngOnInit() {
-    // Re-check login status from localStorage
-    this.isLoggedService.checkLoggedInStatus();
-    
-    // Check if user is logged in
-    if (!this.isLoggedService.isLoggedIn) {
-      this.router.navigate(['/login']);
-      return;
-    }
+  loadProjects(employeeId: number) {
+  this.projectService.getProjects(employeeId).subscribe({
+    next: (projects: any[]) => {
+const normalized = projects.map((p: any) => ({
+  id: p.id,
+  title: p.title || p.projectName || '',
+  tech: p.tech || p.techStack || '',
+  description: p.description || '',
+  image: p.image || null
+}));
 
-    const username = this.auth.getCurrentUser();
-    const email = this.auth.getCurrentUserEmail();
-    
-    console.log('Profile: Username:', username);
-    console.log('Profile: Email:', email);
-    
-    // Debug: Check what's in localStorage
-    const allUsers = JSON.parse(localStorage.getItem('PORTFOLIO_USERS') || '{}');
-    console.log('Profile: All users in localStorage:', allUsers);
-    
-    let backendUser = this.auth.getLoggedInUser(); // Prefer backend-stored user
-    console.log('Raw backendUser:', backendUser);
-    
-    if (backendUser) {
-      // Get localStorage user to preserve skills
-      const localStorageUser = email ? this.auth.getUserByEmail(email) : null;
-      console.log('Profile: localStorageUser:', localStorageUser);
-      console.log('Profile: localStorageUser skills:', localStorageUser?.skills);
-      
-      // Flatten nested address fields for template compatibility
-      this.user = {
-        ...backendUser,
-        address: backendUser.address?.street || '',
-        city: backendUser.address?.city || '',
-        state: backendUser.address?.state || '',
-        country: backendUser.address?.country || '',
-        pinCode: backendUser.address?.pinCode || '',
-        panNO: backendUser.panNO || backendUser.panno || '',
-        // Preserve skills from localStorage (prioritize localStorage skills over backend)
-        skills: localStorageUser?.skills || backendUser.skills || []
-      };
-      console.log('Profile: Merged user with skills:', this.user);
-    } else {
-      this.user = backendUser;
+
+      this.projectsService.setProjects(normalized);
+      console.log('Projects loaded from ProjectService:', normalized);
+    },
+    error: (err) => {
+      console.error('Error loading projects:', err);
     }
-    
+  });
+}
+
+
+ngOnInit() {
+  this.isLoggedService.checkLoggedInStatus();
+
+  if (!this.isLoggedService.isLoggedIn) {
+    this.router.navigate(['/login']);
+    return;
+  }
+
+  const username = this.auth.getCurrentUser();
+  const email = this.auth.getCurrentUserEmail();
+  const backendUser = this.auth.getLoggedInUser();
+
+  if (backendUser) {
+    const localStorageUser = email ? this.auth.getUserByEmail(email) : null;
+
+    this.user = {
+      ...backendUser,
+      address: backendUser.address?.street || '',
+      city: backendUser.address?.city || '',
+      state: backendUser.address?.state || '',
+      country: backendUser.address?.country || '',
+      pinCode: backendUser.address?.pinCode || '',
+      panNO: backendUser.panNO || backendUser.panno || '',
+      skills: localStorageUser?.skills || backendUser.skills || []
+    };
+  }
+
+  if (!this.user) {
+    this.user = username ? this.auth.getUserByUsername(username) : null;
     if (!this.user) {
-      this.user = username ? this.auth.getUserByUsername(username) : null;
-      console.log('Profile: User from username:', this.user);
-      if (!this.user) {
-        this.user = email ? this.auth.getUserByEmail(email) : null;
-        console.log('Profile: User from email:', this.user);
-      }
-    }
-
-    // Ensure skills array exists and is loaded from localStorage
-    if (this.user && !this.user.skills) {
-      this.user.skills = [];
-    }
-
-    console.log('Profile: Final user loaded:', this.user);
-    console.log('Profile: Final skills:', this.user?.skills);
-
-    // Test database connection on load
-    this.testDatabaseConnection();
-
-    this.subscription = this.projectsService.projects$.subscribe(projects => {
-      this.projects = projects;
-    });
-  }
-
-  ngOnDestroy() {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
+      this.user = email ? this.auth.getUserByEmail(email) : null;
     }
   }
+
+  if (this.user && !this.user.skills) {
+    this.user.skills = [];
+  }
+
+  // IMPORTANT — subscribe BEFORE loading
+  this.projectsSub = this.projectsService.projects$.subscribe(p => {
+    this.projects = p;
+  });
+
+  // Load data after subscription
+  if ((this.user as any)?.employeeId) {
+    const empId = (this.user as any).employeeId;
+
+    this.loadPortfolio(empId);
+    this.loadProjects(empId);
+  } else {
+    this.projectsService.setProjects([]);
+  }
+
+  this.testDatabaseConnection();
+}
+
+
+
 
   editingId: string | number | null = null;
-  editProject = { title: '', tech: '', image: '' };
+  editProject: Project = {
+    title: '', tech: '',
+    image: undefined
+  };
 
   deleteProject(id: string | number) {
-    if (confirm('Are you sure you want to delete this project?')) {
-      this.projectsService.deleteProject(id);
-    }
+    if (!confirm('Are you sure you want to delete this project?')) return;
+
+    // Use ProjectsService (single source of truth)
+    this.projectsService.deleteProject(id);
+    this.savePortfolioAfterChange();
   }
 
-  startEdit(project: Project) {
-    this.editingId = project.id || null;
-    this.editProject = { ...project };
+startEdit(project: Project) {
+  // normalize numeric-string ids to numbers so saveEdit/updateProject behave correctly
+  const rawId = project.id ?? null;
+  const numericId = rawId !== null && !isNaN(Number(rawId)) ? Number(rawId) : rawId;
+  this.editingId = numericId;
+  this.editProject = { ...project };
+  this.showProjectModal = true;
+}
+
+
+cancelEdit() {
+  this.showProjectModal = false;
+  this.editingId = null;
+  this.editProject = { title: '', tech: '', image: undefined };
+}
+
+
+saveEdit() {
+  if (!this.editProject.title || !this.editProject.tech) {
+    alert('Please fill in title and tech stack');
+    return;
   }
 
-  cancelEdit() {
-    this.editingId = null;
-    this.editProject = { title: '', tech: '', image: '' };
-  }
+  const id = this.editingId !== null && this.editingId !== undefined && !isNaN(Number(this.editingId))
+    ? Number(this.editingId)
+    : null;
 
-  saveEdit() {
-    document.getElementById('project')?.scrollIntoView({ behavior: 'smooth' });
-    if (!this.editProject.title || !this.editProject.tech) {
-      alert('Please fill in title and tech stack');
-      return;
-    }
+  if (id !== null) {
+    // update -> existing behavior (ProjectsService updates in-memory list after backend success)
+    this.projectsService.updateProject(id, this.editProject.title, this.editProject.tech);
 
-    if (this.editingId !== null && this.editingId !== undefined) {
-      const projects = this.projectsService.getProjects();
-      const existingProject = projects.find(p => p.id === this.editingId);
-      
-      if (existingProject) {
-        // Update existing project
-        this.projectsService.updateProject(
-          this.editingId,
-          this.editProject.title,
-          this.editProject.tech,
-          this.editProject.image || existingProject.image
-        );
-      } else {
-        // Add new project
-        this.projectsService.addProject(
-          this.editProject.title,
-          this.editProject.tech,
-          this.editProject.image || 'assets/default-project.jpg'
-        );
+    // wait for the ProjectsService to emit the updated list, then persist
+    this.projectsService.projects$.pipe(skip(1), take(1)).subscribe(() => {
+      this.savePortfolioAfterChange();
+      this.cancelEdit();
+    });
+  } else {
+    // add -> use the Observable returned by ProjectsService.addProject so we act after backend success
+    const add$ = this.projectsService.addProject(this.editProject.title, this.editProject.tech);
+    add$.pipe(take(1)).subscribe({
+      next: () => {
+        this.savePortfolioAfterChange();
+        this.cancelEdit();
+      },
+      error: (err) => {
+        console.error('Failed to add project:', err);
+        alert('Failed to add project. Please try again.');
       }
-      
-      this.editingId = null;
-      this.editProject = { title: '', tech: '', image: '' };
-    }
+    });
   }
+}
 
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.editProject.image = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-  }
+
+
+
+
+
+  // onFileSelected(event: any) {
+  //   const file = event.target.files[0];
+  //   if (file) {
+  //     const reader = new FileReader();
+  //     reader.onload = (e: any) => {
+  //       this.editProject.image = e.target.result;
+  //     };
+  //     reader.readAsDataURL(file);
+  //   }
+  // }
 
   logout() {
     this.auth.logout();
@@ -180,17 +210,56 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.router.navigate(['/login']);
   }
 
-  openNewProjectModal() {
-    // Create a temporary new project object
-    const newProject: Project = {
-      id: Date.now().toString(),
-      title: 'New Project',
-      tech: 'Tech Stack',
-      image: 'assets/default-project.jpg'
+openNewProjectModal() {
+  this.editingId = null;
+  this.editProject = { title: '', tech: '', image: undefined };
+  this.showProjectModal = true;
+}
+
+
+
+  // Persist the updated portfolio (called after project/skill changes)
+  private savePortfolioAfterChange() {
+    if (!this.user) {
+      console.warn('No user available to save portfolio changes');
+      return;
+    }
+
+    const portfolioData = {
+      skills: this.user.skills || [],
+      designation: this.user.designation || '',
+      projects: (this.projects || []).map(p => ({
+        projectName: p.title || '',
+        description: p.description || '',
+
+      }))
     };
-    
-    // Open edit dialog for new project
-    this.startEdit(newProject);
+
+    if (this.portfolioId) {
+      this.portfolioService.updatePortfolio(this.portfolioId, portfolioData).subscribe({
+        next: (res) => {
+          console.log('Portfolio updated successfully:', res);
+        },
+        error: (err) => {
+          console.error('Error updating portfolio:', err);
+          // fallback: update localStorage user if available
+          if (this.user?.email) {
+            this.auth.updateUserSkills(this.user.email, this.user.skills || []);
+          }
+        }
+      });
+    } else {
+      const employeeId = (this.user as any).employeeId || 1;
+      this.portfolioService.addPortfolio(employeeId, portfolioData).subscribe({
+        next: (res: any) => {
+          this.portfolioId = res?.id || this.portfolioId;
+          console.log('Portfolio created for employee:', res);
+        },
+        error: (err) => {
+          console.error('Error creating portfolio:', err);
+        }
+      });
+    }
   }
 
   showMenu = false;
@@ -242,8 +311,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     if (this.user && this.user.skills) {
       const index = this.user.skills.indexOf(skill);
       if (index > -1) {
-        const removedSkill = this.user.skills[index];
-        
         // Remove the skill
         this.user.skills.splice(index, 1);
         
@@ -254,31 +321,32 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   saveSkillsToBackend() {
-    if (!this.user) return;
+    if (!this.user) {
+      console.error('No user found. Cannot save skills.');
+      alert('User not found. Please refresh the page and try again.');
+      return;
+    }
 
     // Prepare portfolio data for backend
     const portfolioData = {
-      skills: this.user.skills,
+      skills: this.user.skills || [],
       designation: this.user.designation || '',
-      projects: this.projects || []
+      projects: (this.projects || []).map(p => ({
+        projectName: p.title || '',
+        description: p.description || '',
+        tech: p.tech || ''
+      }))
     };
 
     console.log('🔄 Attempting to save skills to backend...');
     console.log('📤 Portfolio data being sent:', JSON.stringify(portfolioData, null, 2));
-    console.log('🏢 Backend API:', 'http://localhost:8080/api/portfolio');
-    console.log('🌐 Checking if backend is reachable...');
 
-    // First check if backend is reachable
-    fetch('http://localhost:8080/api/portfolio')
-      .then(response => {
-        console.log('✅ Backend is reachable! Status:', response.status);
-        this.actualSaveToBackend(portfolioData);
-      })
-      .catch(error => {
-        console.error('❌ Backend is NOT reachable:', error);
-        console.log('🔄 Falling back to localStorage...');
-        this.fallbackToLocalStorage();
-      });
+    // Verify backend URL
+    const backendUrl = 'http://localhost:8080/api/portfolio';
+    console.log(`🌐 Backend URL: ${backendUrl}`);
+
+    // Call backend directly
+    this.actualSaveToBackend(portfolioData);
   }
 
   actualSaveToBackend(portfolioData: any) {
@@ -333,29 +401,71 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.newSkill = '';
   }
 
-  // Test method to verify database connection
+  // Single portfolio loader — DB is the source of truth for projects/skills
+loadPortfolio(employeeId: number) {
+
+  this.portfolioId = null; // reset first
+
+  this.portfolioService.getPortfolio(employeeId).subscribe({
+
+    next: (res: any) => {
+
+      if (!res || (Array.isArray(res) && res.length === 0)) {
+        console.log('No portfolio exists for employee:', employeeId);
+        this.portfolioId = null;
+        return;
+      }
+
+      const portfolio = Array.isArray(res) ? res[0] : res;
+
+      this.portfolioId = portfolio?.id ?? null;
+
+      const localStorageUser =
+        this.user?.email ? this.auth.getUserByEmail(this.user.email) : null;
+
+      if (this.user) {
+        this.user.skills =
+          (localStorageUser?.skills?.length ?? 0) > 0
+            ? localStorageUser!.skills
+            : (portfolio?.skills ?? []);
+      }
+
+      console.log('Portfolio loaded:', portfolio);
+    },
+
+    error: (err) => {
+      console.log('No portfolio found (normal case)', employeeId);
+      this.portfolioId = null;
+    }
+  });
+}
+
+
+  // Merge localStorage projects into portfolio (one-time migration)
+
+
+  // Test method to verify database connection (does not re-load portfolio)
   testDatabaseConnection() {
     console.log('🔍 Testing database connection...');
-    
-    if (this.user) {
-      const employeeId = (this.user as any).employeeId || 1;
-      console.log('📋 Getting portfolio for employee ID:', employeeId);
-      
-      this.portfolioService.getPortfolio(employeeId).subscribe({
-        next: (portfolios) => {
-          console.log('✅ Database connection successful!');
-          console.log('📊 Current portfolios from database:', portfolios);
-          if (portfolios && portfolios.length > 0) {
-            console.log('🎯 Skills in database:', portfolios[0]?.skills || 'No skills found');
-          } else {
-            console.log('🎯 No portfolios found in database');
-          }
-        },
-        error: (error) => {
-          console.error('❌ Database connection failed:', error);
-          console.log('💡 Make sure Spring Boot backend is running on http://localhost:8080');
-        }
-      });
+
+    if (!this.user) {
+      console.log('⚠️ No user available to fetch portfolio for.');
+      return;
+    }
+
+    // Avoid duplicate portfolio API calls — use already-loaded portfolio data if present
+    if (this.portfolioId || (this.projects && this.projects.length > 0)) {
+      console.log('✅ Portfolio already loaded; database connection appears healthy.');
+      return;
+    }
+
+    console.log('⚠️ Portfolio not loaded yet — call `loadPortfolio(employeeId)` from ngOnInit instead of re-fetching here.');
+  }
+
+  ngOnDestroy() {
+    if (this.projectsSub) {
+      this.projectsSub.unsubscribe();
+      this.projectsSub = null;
     }
   }
 }

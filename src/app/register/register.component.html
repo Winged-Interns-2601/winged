@@ -190,6 +190,65 @@
     </span>
   </div>
 
+    <!-- PROJECTS SECTION -->
+<div class="border-t border-gray-200 pt-4">
+  <div class="flex justify-between items-center mb-3">
+    <h5 class="text-lg font-medium text-gray-900">Projects</h5>
+
+    <button
+      type="button"
+      (click)="addProject()"
+      class="px-3 py-1 bg-purple-600 text-white rounded">
+      + Add Project
+    </button>
+  </div>
+
+  <div *ngFor="let project of formData.portfolio.projects; let i = index"
+       class="border p-4 rounded mb-3 space-y-2">
+
+    <input
+      placeholder="Project Name"
+      class="input-sm w-full"
+      [(ngModel)]="project.projectName"
+      name="projectName{{i}}">
+
+    <input
+      placeholder="Tech Stack"
+      class="input-sm w-full"
+      [(ngModel)]="project.techStack"
+      name="techStack{{i}}">
+
+    <textarea
+      placeholder="Description"
+      class="input-sm w-full"
+      [(ngModel)]="project.description"
+      name="description{{i}}">
+    </textarea>
+
+    <div class="grid grid-cols-2 gap-2">
+      <input
+        type="date"
+        class="input-sm"
+        [(ngModel)]="project.startDate"
+        name="startDate{{i}}">
+
+      <input
+        type="date"
+        class="input-sm"
+        [(ngModel)]="project.endDate"
+        name="endDate{{i}}">
+    </div>
+
+    <button
+      type="button"
+      (click)="removeProject(i)"
+      class="text-red-600 text-sm">
+      Remove Project
+    </button>
+
+  </div>
+</div>
+
   
 
 </div>

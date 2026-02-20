@@ -10,9 +10,10 @@ export class ProjectService {
 
   constructor(private http: HttpClient) {}
 
-  addProject(employeeId: number, project: any): Observable<any> {
-    return this.http.post(`${this.API}/add/${employeeId}`, project);
-  }
+addProject(employeeId: number, project: any): Observable<any> {
+  return this.http.post(`${this.API}/add/${employeeId}`, project);
+}
+
 
   getProjects(employeeId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.API}/${employeeId}`);

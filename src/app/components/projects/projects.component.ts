@@ -2,7 +2,8 @@ import { NgFor, NgIf } from '@angular/common';
 import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ProjectsService, Project } from '../../services/projects.service';
+import { ProjectsService } from '../../services/projects.service';
+import type { Project } from '../../services/projects.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -13,13 +14,21 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./projects.component.css']
 })
 export class ProjectsComponent implements OnInit, OnDestroy {
+onFileSelected($event: Event) {
+throw new Error('Method not implemented.');
+}
 
   @Input() projects: Project[] = [];
   @Input() role!: string;
+
   selectedProjectId: string | null = null;
   private subscription: Subscription | null = null;
-  editingId: string | null = null;
-  editProject = { title: '', tech: '', image: '' };
+
+  editingId: number | null = null;
+  editProject: Project = {
+    title: '', tech: '',
+    image: undefined
+  };
 
   constructor(
     private route: ActivatedRoute,
@@ -27,82 +36,66 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    // Get project ID from route params if available
     this.route.params.subscribe(params => {
       if (params['id']) {
         this.selectedProjectId = params['id'];
       }
     });
 
-    // Subscribe to projects from service
     this.subscription = this.projectsService.projects$.subscribe(projects => {
       this.projects = projects;
     });
   }
 
   ngOnDestroy() {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
+    this.subscription?.unsubscribe();
   }
 
-  addProject(title: string, tech: string, image: string) {
-    this.projectsService.addProject(title, tech, image);
+  /* ---------------- ADD ---------------- */
+
+  addProject(title: string, tech: string) {
+    this.projectsService.addProject(title, tech);
   }
+
+  /* ---------------- DELETE ---------------- */
 
   deleteProject(id: string | number) {
-    if (confirm('Are you sure you want to delete this project?')) {
+    if (confirm('Delete this project?')) {
       this.projectsService.deleteProject(id);
     }
   }
 
+  /* ---------------- EDIT ---------------- */
+
   startEdit(project: Project) {
-    this.editingId = project.id?.toString() || null;
+    this.editingId = typeof project.id === 'number' ? project.id : null;
     this.editProject = { ...project };
   }
 
   cancelEdit() {
     this.editingId = null;
-    this.editProject = { title: '', tech: '', image: '' };
+    this.editProject = { title: '', tech: '', image: undefined };
   }
 
   saveEdit() {
     if (!this.editProject.title || !this.editProject.tech) {
-      alert('Please fill in title and tech stack');
+      alert('Please fill title and tech');
       return;
     }
 
-    if (this.editingId !== null && this.editingId !== undefined) {
-      const projectExists = this.projects.find(p => p.id === this.editingId);
-      
-      if (projectExists) {
-        this.projectsService.updateProject(
-          this.editingId,
-          this.editProject.title,
-          this.editProject.tech,
-          this.editProject.image || projectExists.image
-        );
-      } else {
-        this.projectsService.addProject(
-          this.editProject.title,
-          this.editProject.tech,
-          this.editProject.image || 'assets/default-project.jpg'
-        );
-      }
-      
-      this.editingId = null;
-      this.editProject = { title: '', tech: '', image: '' };
+    if (this.editingId !== null) {
+      this.projectsService.updateProject(
+        this.editingId,
+        this.editProject.title,
+        this.editProject.tech
+      );
+    } else {
+      this.projectsService.addProject(
+        this.editProject.title,
+        this.editProject.tech
+      );
     }
-  }
 
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.editProject.image = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
+    this.cancelEdit();
   }
 }

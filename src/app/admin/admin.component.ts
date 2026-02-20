@@ -1,6 +1,10 @@
 import { NgClass, NgFor, NgIf, DatePipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';  // ← Add OnInit import
 import { EmployeeService } from '../services/employee.service';
+import { PortfolioService } from '../services/portfolio.service';
+import { AuthService } from '../services/auth.service';
+import { ProjectsService } from '../services/projects.service';
+
 
 @Component({
   selector: 'app-admin',
@@ -14,7 +18,12 @@ export class AdminComponent implements OnInit {
     userCount: number = 0;
     employees: any[] = [];
 
-    constructor(private employeeService: EmployeeService) {}
+    constructor(
+        private auth: AuthService,
+        private employeeService: EmployeeService,
+        private projectsService: ProjectsService,
+
+         private portfolioService: PortfolioService) {}
 
     ngOnInit() {  
         console.log('Admin component initialized');
@@ -50,23 +59,43 @@ export class AdminComponent implements OnInit {
                 console.log('Available fields:', Object.keys(employees[0]));
             }
             
-            this.employees = employees.sort((a, b) => {
-                // Try different possible field names for login time
-                const loginA = a.lastLoginTime || a.lastLogin || a.loginTime || a.lastLoginAt;
-                const loginB = b.lastLoginTime || b.lastLogin || b.loginTime || b.lastLoginAt;
-                
-                if (loginA && loginB) {
-                    return new Date(loginB).getTime() - new Date(loginA).getTime();
-                }
-                
-                if (loginA) return -1;
-                if (loginB) return 1;
-                
-                // Fallback to joining date
-                const dateA = a.joiningDate ? new Date(a.joiningDate) : new Date(0);
-                const dateB = b.joiningDate ? new Date(b.joiningDate) : new Date(0);
-                return dateB.getTime() - dateA.getTime();
-            });
+this.employees = employees.sort((a, b) => {
+  const loginA = a.lastLoginTime || a.lastLogin || a.loginTime || a.lastLoginAt;
+  const loginB = b.lastLoginTime || b.lastLogin || b.loginTime || b.lastLoginAt;
+
+  if (loginA && loginB) {
+    return new Date(loginA).getTime() - new Date(loginB).getTime();
+  }
+
+  if (loginA) return 1;
+  if (loginB) return -1;
+
+  return 0;
+});
+
         });
     }
+
+
+deletePortfolio(employeeId: number) {
+
+  if (!confirm('Delete entire portfolio?')) return;
+
+  this.portfolioService.deletePortfolio(employeeId).subscribe({
+    next: (res) => {
+      console.log('Portfolio deleted', res);
+
+      // instantly update UI
+      this.projectsService.clear();
+
+      alert('Portfolio deleted successfully');
+    },
+    error: (err) => {
+      console.error('Delete failed', err);
+      alert('Delete failed');
+    }
+  });
+}
+
+
 }

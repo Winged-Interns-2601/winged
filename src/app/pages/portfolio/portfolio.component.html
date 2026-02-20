@@ -62,7 +62,7 @@
       </section>
   
   <!-- Skills Section -->
-  <section *ngIf="portfolio?.skills && portfolio.skills.length > 0" class="mt-12">
+  <!-- <section *ngIf="portfolio?.skills && portfolio.skills.length > 0" class="mt-12">
     <div class="text-center mb-8">
       <h2 class="text-3xl font-bold text-white mb-4">My Skills</h2>
       <p class="text-gray-300">Technologies and tools I work with</p>
@@ -74,7 +74,7 @@
         {{ skill }}
       </span>
     </div>
-  </section>
+  </section> -->
 
   
     </div>
@@ -126,39 +126,55 @@
     </div>
 
     <!-- Right -->
-    <div>
-     <div class="flex  gap-8 text-3xl text-white mt-6 mb-10">
-  <a href="https://github.com/yourusername" target="_blank"
-     class="hover:text-yellow-300 transition duration-300">
-    <i class="bi bi-github"></i>
-  </a>
+<div class="bg-[#002487] text-white p-8 rounded-2xl max-w-3xl">
 
-  <a href="https://linkedin.com/in/yourusername" target="_blank"
-     class="hover:text-blue-300 transition duration-300">
-    <i class="bi bi-linkedin"></i>
-  </a>
+  <!-- Skills -->
+  <section *ngIf="portfolio?.skills?.length > 0" class="mb-8">
+    <h2 class="text-2xl font-bold mb-4">My Skills</h2>
 
-  <a href="https://twitter.com/yourusername" target="_blank"
-     class="hover:text-sky-300 transition duration-300">
-    <i class="bi bi-twitter"></i>
-  </a>
+    <div class="flex flex-wrap gap-3">
+      <span *ngFor="let skill of portfolio.skills"
+            class="bg-blue-600 px-4 py-2 rounded-full text-sm font-medium shadow">
+        {{ skill }}
+      </span>
+    </div>
+  </section>
 
-  <a href="https://instagram.com/yourusername" target="_blank"
-     class="hover:text-pink-300 transition duration-300">
-    <i class="bi bi-instagram"></i>
-  </a>
+  <!-- Designation -->
+  <section class="mb-8">
+    <h2 class="text-2xl font-bold mb-2">Designation</h2>
+    <p class="text-lg text-orange-300 font-semibold">
+      {{ portfolio?.designation }}
+    </p>
+  </section>
+
+  <!-- Social icons -->
+  <div class="flex gap-8 text-3xl mt-6 mb-6">
+    <a href="#" class="hover:text-yellow-300 transition">
+      <i class="bi bi-github"></i>
+    </a>
+    <a href="#" class="hover:text-blue-300 transition">
+      <i class="bi bi-linkedin"></i>
+    </a>
+    <a href="#" class="hover:text-sky-300 transition">
+      <i class="bi bi-twitter"></i>
+    </a>
+    <a href="#" class="hover:text-pink-300 transition">
+      <i class="bi bi-instagram"></i>
+    </a>
+  </div>
+
+  <p class="text-gray-300 mb-6">
+    Let’s build something meaningful together.
+  </p>
+
+  <button
+    class="px-6 py-2 bg-orange-500 hover:bg-orange-600 rounded-full font-semibold transition">
+    Get in touch →
+  </button>
+
 </div>
 
-
-      <p class="text-sm text-gray-500 mb-6">
-        Let’s build something meaningful together.
-      </p>
-
-      <button
-        class="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-full font-semibold transition">
-        Get in touch →
-      </button>
-    </div>
 
   </div>
 </section>
@@ -173,8 +189,10 @@
       <div *ngFor="let project of projects"
            class="relative h-74 rounded-xl overflow-hidden group">
 
-        <!-- Image -->
-        <img [src]="project.image" class="w-full h-full object-cover" />
+           <div class="w-full h-full bg-gray-700 flex items-center justify-center text-white">
+  {{ project.title }}
+</div>
+
 
         <!-- Dark overlay -->
         <div class="absolute inset-0 bg-black/40"></div>

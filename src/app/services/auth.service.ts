@@ -27,6 +27,12 @@ export interface PortfolioUser {
   about: string;
   skills: any[];
   projects: any[];
+  // Some backend responses store a nested `portfolio` object
+  portfolio?: {
+    designation?: string;
+    skills?: any[];
+    projects?: any[];
+  };
   contact: {
     email: string;
     github: string;
