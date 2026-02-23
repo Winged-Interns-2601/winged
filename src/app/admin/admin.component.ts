@@ -19,6 +19,7 @@ export class AdminComponent implements OnInit {
     userCount: number = 0;
     employees: any[] = [];
     employeeTypeFilter: string = '';
+    designationFilter: string = '';
 
     constructor(
         private auth: AuthService,
@@ -106,15 +107,21 @@ deletePortfolio(employeeId: number) {
     document.body.classList.remove('admin-bg');
   }
 
-  get filteredEmployees() {
-  if (!this.employeeTypeFilter) {
-    return this.employees;
-  }
+get filteredEmployees() {
+  return this.employees.filter(emp => {
 
-  return this.employees.filter(emp =>
-    emp.employeeType?.toLowerCase() ===
-    this.employeeTypeFilter.toLowerCase()
-  );
+    const matchEmployeeType =
+      !this.employeeTypeFilter ||
+      emp.employeeType?.toLowerCase() ===
+      this.employeeTypeFilter.toLowerCase();
+
+    const matchDesignation =
+      !this.designationFilter ||
+      emp.designation?.toLowerCase() ===
+      this.designationFilter.toLowerCase();
+
+    return matchEmployeeType && matchDesignation;
+  });
 }
 
 updatePortfolioData(portfolioId: number, employeeData: any) {

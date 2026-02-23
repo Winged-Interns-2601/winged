@@ -504,15 +504,29 @@
     </div>
 
 <div class="table" *ngIf="activePage === 'table'">
-  <select
-  [(ngModel)]="employeeTypeFilter"
-  class="mb-4 p-2 rounded text-black">
+<div>
 
-  <option value="">All Employees</option>
-<option value="Full Time">Full Time</option>
-<option value="Intern">Intern</option>
-<option value="Contract">Contract</option>
-</select>
+  <select
+    [(ngModel)]="employeeTypeFilter"
+    class="mb-4 p-2 rounded text-black border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+    <option value="">All Employees</option>
+    <option value="Full Time">Full Time</option>
+    <option value="Intern">Intern</option>
+    <option value="Contract">Contract</option>
+  </select>
+
+  <select
+    [(ngModel)]="designationFilter"
+    class="mb-4 p-2 rounded text-black ml-2 border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+    <option value="">All Designations</option>
+    <option value="fullstack">fullstack</option>
+    <option value="frontend">frontend</option>
+    <option value="backend">backend</option>
+  </select>
+
+</div>
 <div class="bg-blue rounded-2xl p-6 shadow-2xl shadow-white/20 w-230">
   
 
