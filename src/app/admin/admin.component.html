@@ -35,7 +35,7 @@
     </li>
 
     <!-- Billing -->
-    <li>
+    <!-- <li>
       <a (click)="activePage='billing'"
          [ngClass]="activePage==='billing'
            ? 'bg-white/10 text-white'
@@ -44,13 +44,13 @@
         📁 <span>Billing</span>
         <span class="ml-auto bg-white/20 px-2 rounded text-sm">12</span>
       </a>
-    </li>
+    </li> -->
 
     <!-- Section title -->
-    <li class="pl-5 text-sm text-gray-400 mt-4">Account Pages</li>
+    <!-- <li class="pl-5 text-sm text-gray-400 mt-4">Account Pages</li> -->
 
     <!-- Profile -->
-    <li>
+    <!-- <li>
       <a (click)="activePage='profile'"
          [ngClass]="activePage==='profile'
            ? 'bg-white/10 text-white'
@@ -58,7 +58,7 @@
          class="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer">
         📊 <span>Profile</span>
       </a>
-    </li>
+    </li> -->
 
   </ul>
 </nav>
@@ -70,7 +70,7 @@
 
 
   <!-- Help Card -->
-  <div class="rounded-2xl bg-white/70 p-4">
+  <!-- <div class="rounded-2xl bg-white/70 p-4">
     <div class="bg-white w-10 h-10 rounded-xl flex items-center justify-center mb-3 shadow text-black">
       ◆
     </div>
@@ -81,12 +81,12 @@
     <button class="bg-white text-black w-full py-2 rounded-xl font-semibold shadow">
       Documentation
     </button>
-  </div>
+  </div> -->
 
   <!-- Upgrade Button (IMPORTANT: separate from help card) -->
-  <button class="bg-orange-500 hover:bg-orange-600 text-white w-full py-3 rounded-xl font-bold shadow-md">
+  <!-- <button class="bg-orange-500 hover:bg-orange-600 text-white w-full py-3 rounded-xl font-bold shadow-md">
     Upgrade to pro
-  </button>
+  </button> -->
 
 </div>
 
@@ -504,6 +504,15 @@
     </div>
 
 <div class="table" *ngIf="activePage === 'table'">
+  <select
+  [(ngModel)]="employeeTypeFilter"
+  class="mb-4 p-2 rounded text-black">
+
+  <option value="">All Employees</option>
+<option value="Full Time">Full Time</option>
+<option value="Intern">Intern</option>
+<option value="Contract">Contract</option>
+</select>
 <div class="bg-blue rounded-2xl p-6 shadow-2xl shadow-white/20 w-230">
   
 
@@ -530,7 +539,7 @@
     </div>
 
     <!-- Dynamic Employee Rows -->
-    <div *ngFor="let employee of employees; let i = index"
+    <div *ngFor="let employee of filteredEmployees; let i = index"
          class="grid grid-cols-14 items-center py-4 border-b employee-row min-w-[1590px]">
 
          
@@ -569,11 +578,12 @@
       <span class="text-white text-xs px-3 py-1 rounded-full w-fit bg-green-500">
         {{ employee.status || 'online' }}
       </span>
-        <button
+      
+        <!-- <button
     (click)="deletePortfolio(employee.employeeId)"
     class="bg-red-500 text-white px-3 py-1 rounded-lg">
     Delete Portfolio
-  </button>
+  </button> -->
 
     </div>
     </div>

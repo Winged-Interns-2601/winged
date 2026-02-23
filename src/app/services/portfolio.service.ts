@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class PortfolioService {
-  private API = 'http://localhost:8080/api/portfolio';
+private API = 'http://localhost:8080/api/portfolio';
 
   constructor(private http: HttpClient) {}
 
@@ -14,9 +14,11 @@ export class PortfolioService {
     return this.http.post(`${this.API}/add/${employeeId}`, portfolio);
   }
 
-  getPortfolio(employeeId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.API}/get-portfolio/${employeeId}`);
-  }
+  getPortfolio(employeeId: number) {
+  return this.http.get(
+    `${this.API}/get-portfolio/${employeeId}`
+  );
+}
 
   deletePortfolio(employeeId: number): Observable<string> {
     return this.http.delete<string>(`${this.API}/delete/${employeeId}`);

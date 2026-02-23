@@ -64,6 +64,8 @@ const normalized = projects.map((p: any) => ({
 
 
 ngOnInit() {
+    document.body.classList.add('admin-bg');
+
   this.isLoggedService.checkLoggedInStatus();
 
   if (!this.isLoggedService.isLoggedIn) {
@@ -467,5 +469,10 @@ loadPortfolio(employeeId: number) {
       this.projectsSub.unsubscribe();
       this.projectsSub = null;
     }
+    document.body.classList.remove('admin-bg');
   }
+
+     
+  
+  
 }

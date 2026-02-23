@@ -35,28 +35,48 @@ export class LoginComponent {
 
     const email = this.email.toLowerCase().trim();
     
+    console.log('=== LOGIN DEBUG ===');
     console.log('Attempting login with email:', email);
+    console.log('Password entered:', this.password ? 'YES' : 'NO');
     
     // Use employee service to validate against database
     this.employeeService.getByEmail(email).subscribe({
       next: (employee: any) => {
-        console.log('Found employee in database:', employee);
+        console.log('Backend response:', employee);
         
-        // For now, accept any password since we don't have password validation in backend
-        // In production, you should add password field to employee entity and validate here
-        if (employee) {
-          localStorage.setItem('LOGGED_IN_USER', JSON.stringify(employee));
-          const username = employee.firstName || email.split('@')[0];
-          this.auth.loginLocal(username, email);
-          this.isLoggedService.loginSuccess(username);
-          this.router.navigate(['/portfolio']);
+        if (employee && employee.email === email) {
+          console.log('✅ Found employee:', employee);
+          console.log('✅ Employee password:', employee.password);
+          console.log('✅ Entered password:', this.password);
+          
+          // Validate password
+          if (employee.password === this.password) {
+            console.log('✅ Password validation successful');
+            localStorage.setItem('LOGGED_IN_USER', JSON.stringify(employee));
+            const username = employee.firstName || email.split('@')[0];
+            console.log('✅ Username:', username);
+            
+            // Update auth services
+            this.auth.loginLocal(username, email);
+            console.log('✅ Auth service updated');
+            
+            this.isLoggedService.loginSuccess(username);
+            console.log('✅ IsLoggedService updated, isLoggedIn:', this.isLoggedService.isLoggedIn);
+            
+            console.log('✅ Navigating to portfolio...');
+            this.router.navigate(['/portfolio']);
+          } else {
+            console.log('❌ Password validation failed');
+            this.errorMessage = 'Invalid password!';
+          }
         } else {
+          console.log('❌ Employee not found');
           this.errorMessage = 'User not found!';
         }
       },
       error: (err: any) => {
-        console.error('Login failed:', err);
-        this.errorMessage = 'User not found. Please register first!';
+        console.error('❌ Login failed:', err);
+        this.errorMessage = 'Login failed. Please try again!';
       }
     });
   }

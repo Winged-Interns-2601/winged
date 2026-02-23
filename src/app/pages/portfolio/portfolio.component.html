@@ -40,10 +40,17 @@
   
   
 <div>
-  <p class="text-sm text-orange-200 mb-2">Hey, I'm a</p>
+  <p class="text-sm text-white">Hey, I'm a</p>
 
   <h1 class="text-5xl md:text-6xl font-extrabold leading-tight">
-    Creative <br> Director
+    {{ user?.firstName }} <br> {{ user?.lastName }}
+      <!-- Designation -->
+  <!-- <section class="mb-8">
+    <h2 class="text-2xl font-bold mb-2">Designation</h2>
+    <p class="text-lg text-orange-300 font-semibold">
+      {{ portfolio?.designation }}
+    </p>
+  </section> -->
   </h1>
 
   <!-- Decorative bars -->
@@ -51,12 +58,12 @@
 
 
         <div>
-          <p class="text-lg font-semibold">
-            Great design should feel invisible.
+          <p class="text-lg font-semibold -ml-45 mt-30">
+            {{ portfolio?.designation }} Developer
           </p>
-          <p class="text-sm text-gray-200 mt-2 ">
+          <!-- <p class="text-sm text-gray-200 mt-2 ">
             From logo to language, I build brands that connect and convert.
-          </p>
+          </p> -->
         </div>
   
       </section>
@@ -130,7 +137,7 @@
 
   <!-- Skills -->
   <section *ngIf="portfolio?.skills?.length > 0" class="mb-8">
-    <h2 class="text-2xl font-bold mb-4">My Skills</h2>
+    <h2 class="text-2xl font-bold mb-4">Skills</h2>
 
     <div class="flex flex-wrap gap-3">
       <span *ngFor="let skill of portfolio.skills"
@@ -140,16 +147,10 @@
     </div>
   </section>
 
-  <!-- Designation -->
-  <section class="mb-8">
-    <h2 class="text-2xl font-bold mb-2">Designation</h2>
-    <p class="text-lg text-orange-300 font-semibold">
-      {{ portfolio?.designation }}
-    </p>
-  </section>
+
 
   <!-- Social icons -->
-  <div class="flex gap-8 text-3xl mt-6 mb-6">
+  <!-- <div class="flex gap-8 text-3xl mt-6 mb-6">
     <a href="#" class="hover:text-yellow-300 transition">
       <i class="bi bi-github"></i>
     </a>
@@ -162,8 +163,8 @@
     <a href="#" class="hover:text-pink-300 transition">
       <i class="bi bi-instagram"></i>
     </a>
-  </div>
-
+  </div> -->
+<!-- 
   <p class="text-gray-300 mb-6">
     Let’s build something meaningful together.
   </p>
@@ -171,7 +172,7 @@
   <button
     class="px-6 py-2 bg-orange-500 hover:bg-orange-600 rounded-full font-semibold transition">
     Get in touch →
-  </button>
+  </button> -->
 
 </div>
 
@@ -212,7 +213,7 @@
 </div>
 
 
-    <div *ngIf="!portfolio" class="text-center py-20 text-white">
+    <div *ngIf="!loading && !portfolio" class="text-center py-20 text-white">
       <h2 class="text-3xl font-bold mb-4">User not found</h2>
       <p class="text-orange-200">Please log in again</p>
     </div>

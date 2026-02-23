@@ -17,8 +17,10 @@ import { Subscription } from 'rxjs';
 })
 export class PortfolioComponent implements OnInit, OnDestroy {
 
+  user: any;
   projects: Project[] = [];
   private subscription: Subscription | null = null;
+  loading = true;
 
   constructor(
     private auth: AuthService,
@@ -48,80 +50,64 @@ export class PortfolioComponent implements OnInit, OnDestroy {
 }
 
 loadPortfolio(employeeId: number) {
+  console.log("Calling portfolio API with:", employeeId);
+
   this.portfolioService.getPortfolio(employeeId).subscribe({
     next: (res: any) => {
-      const portfolio = Array.isArray(res) ? res[0] : res;
-      this.portfolio = portfolio;
+      console.log("BACKEND RESPONSE:", res);
 
-      console.log("Portfolio loaded from backend:", portfolio);
+      this.portfolio = Array.isArray(res) ? res[0] : res;
+      this.loading = false;
     },
-    error: (err) => console.error("Portfolio load failed", err)
+    error: (err) => {
+      console.log("PORTFOLIO ERROR:", err);
+      this.loading = false;
+    }
   });
 }
 
 
-
   portfolio: any;
 
-  ngOnInit(){
-    // Re-check login status from localStorage
-    this.isLoggedService.checkLoggedInStatus();
-    
-    // Check if user is logged in using IsLoggedService
-    if (!this.isLoggedService.isLoggedIn) {
-      this.router.navigate(['/login']);
-      return;
-    }
+ngOnInit() {
+  document.body.classList.add('admin-bg');
 
-    const backendUser = this.auth.getLoggedInUser();
-const employeeId = backendUser?.employeeId;
+  // check login status
+  this.isLoggedService.checkLoggedInStatus();
 
-if (employeeId) {
-  this.loadPortfolio(employeeId);   // ← add
-  this.loadProjects(employeeId);    // existing
-}
-
-
-    
-    const user = this.auth.getCurrentUser();
-    console.log('Portfolio: Current user:', user);
-    
-    if (user) {
-      // First try to get localStorage user (has skills)
-      const email = this.auth.getCurrentUserEmail();
-      console.log('Portfolio: Current email:', email);
-      
-      // Debug: Check what's in localStorage
-      const allUsers = JSON.parse(localStorage.getItem('PORTFOLIO_USERS') || '{}');
-      console.log('Portfolio: All users in localStorage:', allUsers);
-      
-      this.portfolio = email ? this.auth.getUserByEmail(email) : null;
-      console.log('Portfolio: User from localStorage:', this.portfolio);
-      console.log('Portfolio: User skills:', this.portfolio?.skills);
-      
-      // If not found by email, try by username
-      if (!this.portfolio) {
-        this.portfolio = this.auth.getUserByUsername(user);
-        console.log('Portfolio: User from username:', this.portfolio);
-        console.log('Portfolio: User skills from username:', this.portfolio?.skills);
-      }
-      
-      if (!this.portfolio) {
-        console.log('Portfolio: User not found, redirecting to login');
-        this.router.navigate(['/login']);
-      }
-    }
-
-    // Subscribe to projects from service
-    this.subscription = this.projectsService.projects$.subscribe(projects => {
-      this.projects = projects;
-    });
+  if (!this.isLoggedService.isLoggedIn) {
+    this.router.navigate(['/login']);
+    return;
   }
+
+  // get backend logged user
+  const backendUser = this.auth.getLoggedInUser();
+this.user = backendUser;
+
+  if (!backendUser || !backendUser.employeeId) {
+    this.router.navigate(['/login']);
+    return;
+  }
+
+  const employeeId = backendUser.employeeId;
+
+  // load data
+  this.loadPortfolio(employeeId);
+  this.loadProjects(employeeId);
+
+  // subscribe projects
+  this.subscription = this.projectsService.projects$.subscribe(projects => {
+    this.projects = projects;
+  });
+}
 
   ngOnDestroy() {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
+     
+    document.body.classList.remove('admin-bg');
+  
   }
 
   logout() {

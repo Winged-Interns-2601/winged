@@ -59,10 +59,23 @@
 
 
   
-  <div>
-    <label class="label block text-sm font-medium text-gray-600 mb-1">Employee Type</label>
-    <input class="input-sm" [(ngModel)]="formData.employeeType" name="employeeType">
-  </div>
+<div>
+  <label class="label block text-sm font-medium text-gray-600 mb-1">
+    Employee Type
+  </label>
+
+  <select
+    class="input-sm"
+    [(ngModel)]="formData.employeeType"
+    name="employeeType">
+
+    <option value="">Select Employee Type</option>
+    <option value="Full Time">Full Time</option>
+    <option value="Intern">Intern</option>
+    <option value="Contract">Contract</option>
+
+  </select>
+</div>
   <div>
     <label class="label block text-sm font-medium text-gray-600 mb-1">Phone</label>
     <input class="input-sm" [(ngModel)]="formData.phone" name="phone">

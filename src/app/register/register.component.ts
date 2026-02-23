@@ -223,10 +223,16 @@ formData = {
 
   this.employeeService.createUser(payload).subscribe({
     next: (response: any) => {
-      this.successMessage = 'Registration successful!';
-      localStorage.setItem('LOGGED_IN_USER', JSON.stringify(response));
-      this.router.navigate(['/portfolio']);
-    },
+  this.successMessage = 'Registration successful!';
+
+  localStorage.setItem('LOGGED_IN_USER', JSON.stringify(response));
+
+  // ⭐ ADD THIS
+  this.auth.getLoggedInUser(); // if method exists
+  this.isLoggedService.loginSuccess();        // mark user as logged in
+
+  this.router.navigate(['/portfolio']);
+},
     error: (err) => {
   console.log("BACKEND ERROR:", err);
   console.log("ERROR BODY:", err.error);

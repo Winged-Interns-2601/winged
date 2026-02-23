@@ -1,5 +1,6 @@
 import { NgClass, NgFor, NgIf, DatePipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';  // ← Add OnInit import
+import { FormsModule } from '@angular/forms';
 import { EmployeeService } from '../services/employee.service';
 import { PortfolioService } from '../services/portfolio.service';
 import { AuthService } from '../services/auth.service';
@@ -8,7 +9,7 @@ import { ProjectsService } from '../services/projects.service';
 
 @Component({
   selector: 'app-admin',
-  imports: [NgIf, NgClass, NgFor, DatePipe],
+  imports: [NgIf, NgClass, NgFor, DatePipe, FormsModule],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
 })
@@ -17,15 +18,19 @@ export class AdminComponent implements OnInit {
 
     userCount: number = 0;
     employees: any[] = [];
+    employeeTypeFilter: string = '';
 
     constructor(
         private auth: AuthService,
         private employeeService: EmployeeService,
         private projectsService: ProjectsService,
 
-         private portfolioService: PortfolioService) {}
+        private portfolioService: PortfolioService) {}
 
     ngOnInit() {  
+
+        document.body.classList.add('admin-bg');
+
         console.log('Admin component initialized');
         console.log('API endpoint:', 'http://localhost:8080/api/employees/count');
 
@@ -97,5 +102,19 @@ deletePortfolio(employeeId: number) {
   });
 }
 
+  ngOnDestroy() {
+    document.body.classList.remove('admin-bg');
+  }
+
+  get filteredEmployees() {
+  if (!this.employeeTypeFilter) {
+    return this.employees;
+  }
+
+  return this.employees.filter(emp =>
+    emp.employeeType?.toLowerCase() ===
+    this.employeeTypeFilter.toLowerCase()
+  );
+}
 
 }

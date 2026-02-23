@@ -76,8 +76,12 @@ addProject(title: string, tech?: string) {
       return;
     }
 
-    const payload: any = { title };
-    if (tech !== undefined) { payload.tech = tech; payload.techStack = tech; }
+    const payload: any = { projectName: title };
+    if (tech !== undefined) { 
+      payload.techStack = tech; 
+    }
+
+    console.log('Updating project with payload:', payload);
 
     this.projectApi.updateProject(numericId, payload).subscribe({
       next: () => {
@@ -85,6 +89,7 @@ addProject(title: string, tech?: string) {
           Number(p.id) === numericId ? { ...p, title, tech } : p
         );
         this.setProjects(updated);
+        console.log('Project updated successfully in frontend');
       },
       error: (err) => console.warn('Update failed', err)
     });
