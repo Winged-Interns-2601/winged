@@ -117,4 +117,25 @@ deletePortfolio(employeeId: number) {
   );
 }
 
+updatePortfolioData(portfolioId: number, employeeData: any) {
+    const updatedData = {
+      designation: employeeData.designation,
+      employeeType: employeeData.employeeType,
+      email: employeeData.email,
+      phone: employeeData.phone,
+      // Add any other fields you want to update
+    };
+ 
+    this.portfolioService.updatePortfolio(portfolioId, updatedData).subscribe({
+      next: (response) => {
+        console.log('Portfolio updated successfully:', response);
+        alert('Portfolio updated successfully!');
+      },
+      error: (error) => {
+        console.error('Update failed:', error);
+        alert('Update failed!');
+      }
+    });
+  }
+
 }

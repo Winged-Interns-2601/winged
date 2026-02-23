@@ -522,7 +522,7 @@
 
 
     <!-- Table Header -->
-      <div class="grid grid-cols-14 bg-blue-900 text-white text-sm border-b  pb-2 p-2 font-semibold min-w-[1660px] sticky top-0 bg-blue">
+      <div class="grid grid-cols-15 bg-blue-900 text-white text-sm border-b  pb-2 p-2 font-semibold min-w-[1750px] sticky top-0 bg-blue">
         <span class="pl-2">Sr.No</span>
       <span class="pr-10">FirstName</span>
       <span>LastName</span>
@@ -535,28 +535,30 @@
       <span>Exit Date</span>
       <span>Adhar No</span>
       <span>Pan No</span>
+      <span>Employee Id</span>
       <span>Status</span>
+      <span>Actions</span>
     </div>
 
     <!-- Dynamic Employee Rows -->
     <div *ngFor="let employee of filteredEmployees; let i = index"
-         class="grid grid-cols-14 items-center py-4 border-b employee-row min-w-[1590px]">
+         class="grid grid-cols-16 items-center py-4 border-b employee-row min-w-[1750px]">
 
          
 <span class="font-semibold pl-5">
   {{ i + 1 }}<span class="text-white">.</span>
 </span>
-         <p class="font-semibold  pl-5">{{ employee.firstName || '' }}</p>
-         <p class="font-semibold pl-5">{{ employee.lastName || '' }}</p>
-         <p class="font-semibold pl-5">{{ employee.employeeType || 'N/A' }}</p>
+         <p class="font-semibold  pl-3">{{ employee.firstName || '' }}</p>
+         <p class="font-semibold pl-3">{{ employee.lastName || '' }}</p>
+         <p class="font-semibold pl-7">{{ employee.employeeType || 'N/A' }}</p>
          <p class="font-semibold pl-3">{{ employee.designation || 'N/A' }}</p>
 
-          <p class="text-white text-sm mr-2" *ngIf="employee.email && employee.email.includes('@')">
+          <p class="text-white text-sm ml-3" *ngIf="employee.email && employee.email.includes('@')">
             {{ employee.email.split('@')[0] }}<br>
             &#64;{{ employee.email.split('@')[1] }}
           </p>
 
-          <p class="text-white text-sm" *ngIf="!employee.email || !employee.email.includes('@')">
+          <p class="text-white text-sm mr-2" *ngIf="!employee.email || !employee.email.includes('@')">
             N/A
           </p>
 
@@ -573,11 +575,25 @@
 
         <p class="font-semibold">{{ employee.aadharNo || 'N/A' }}</p>
 
-        <p class="font-semibold">{{ employee.panNO || 'N/A' }}</p>
+        <p class="font-semibold ml-2">{{ employee.panNO || 'N/A' }}</p>
+        <p>{{employee.employeeId}}</p>
       
-      <span class="text-white text-xs px-3 py-1 rounded-full w-fit bg-green-500">
+      <span class="text-white text-xs px-3 py-1 rounded-full w-fit bg-green-500 ml-8">
         {{ employee.status || 'online' }}
       </span>
+      
+      <div class="flex gap-2">
+        <button
+          (click)="updatePortfolioData(employee.id, employee)"
+          class="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-600">
+          Update
+        </button>
+        <button
+          (click)="deletePortfolio(employee.employeeId)"
+          class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600">
+          Delete
+        </button>
+      </div>
       
         <!-- <button
     (click)="deletePortfolio(employee.employeeId)"
