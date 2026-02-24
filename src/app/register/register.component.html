@@ -246,6 +246,18 @@
       [(ngModel)]="project.description"
       name="description{{i}}">
     </textarea>
+    
+    <input
+  type="file"
+  accept="image/*"
+  class="input-sm w-full"
+  (change)="onProjectFileSelected($event, i)">
+
+<!-- IMAGE PREVIEW -->
+<img
+  *ngIf="project.image"
+  [src]="project.image"
+  class="w-32 h-20 object-cover rounded border">
 
     <div class="grid grid-cols-2 gap-2">
       <input

@@ -10,11 +10,11 @@
         class="bg-purple-600 text-white w-full py-2 rounded-lg mb-6 hover:bg-purple-700">
         + Create Project
       </button>
-      <button (click)="addSkill()"
+      <!-- <button (click)="addSkill()"
       
         class="bg-pink-600 text-white w-full py-2 rounded-lg mb-6 hover:bg-pink-700">
         + Add Skill
-      </button>
+      </button> -->
       <!-- <button (click)="testDatabaseConnection()"
       
         class="bg-green-600 text-white w-full py-2 rounded-lg mb-6 hover:bg-green-700">
@@ -22,20 +22,21 @@
       </button> -->
 
       <ul class="space-y-4 text-white text-sm">
-        <li class="font-semibold text-white">Dashboard</li>
-        <li>Editor</li>
-        <li>Leads</li>
-        <li>Settings</li>
-        <li>Preview</li>
+
+
+        <li class="cursor-pointer hover:text-blue-600">setting</li>
+<li class="cursor-pointer hover:text-red-600" routerLink="/login">
+  Logout
+</li>
       </ul>
     </div>
 
-    <div class="bg-purple-100 p-4 rounded-lg text-center">
+    <!-- <div class="bg-purple-100 p-4 rounded-lg text-center">
       <p class="text-sm">Upgrade to Pro</p>
       <button class="bg-purple-600 text-white px-4 py-1 rounded mt-2 hover:bg-purple-700">
         Upgrade
       </button>
-    </div>
+    </div> -->
   </aside>
 
   <!-- Main -->
@@ -53,10 +54,13 @@
 
         <div class="flex items-center gap-2 cursor-pointer" (click)="toggleMenu()">
           <div class="bg-amber-200 h-10 w-10 flex items-center justify-center rounded-full">
-            AJ
-          </div>
-          <span class="text-white">Alyssa Jones</span>
-          <span class="text-white">{{ showMenu ? '˄' : '˅' }}</span>
+  {{ user?.firstName?.charAt(0)?.toUpperCase() }}{{ user?.lastName?.charAt(0)?.toUpperCase() }}
+</div>
+          <span class="text-white">{{ user?.firstName || 'User' }}</span>
+          <span class="text-white">
+  <i class="fa-solid" [ngClass]="showMenu ? 'fa-angle-up' : 'fa-angle-down'"></i>
+</span>
+          <!-- <span class="text-white">{{ showMenu ? '⬆' : '⬇' }}</span> -->
         </div>
 
         <!-- Dropdown -->
@@ -182,14 +186,24 @@
       <div *ngFor="let project of projects"
         class="relative flex bg-white rounded-xl shadow-md overflow-hidden">
 
-        <div class="w-40 h-28 bg-gray-200 flex items-center justify-center text-gray-500">
-  Project
+        <div class="w-40 h-28 bg-gray-200 flex items-center justify-center overflow-hidden">
+
+  <img
+    *ngIf="project.image; else noImage"
+    [src]="project.image"
+    class="w-full h-full object-cover" />
+
+  <ng-template #noImage>
+    <span class="text-gray-500">Project</span>
+  </ng-template>
+
 </div>
 
 
         <div class="p-4 flex-1">
           <h3 class="text-lg font-semibold">{{ project.title }}</h3>
           <p class="text-sm text-gray-500">{{ project.tech }}</p>
+
         </div>
 
         <div class="absolute top-2 right-2 flex gap-2">
@@ -215,25 +229,52 @@
         <h2 class="text-2xl font-bold mb-6">Edit Project</h2>
         
         <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-semibold mb-2">Project Title</label>
-            <input 
-              [(ngModel)]="editProject.title" 
-              name="title"
-              type="text" 
-              placeholder="Enter project title" 
-              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500" />
-          </div>
-          
-          <div>
-            <label class="block text-sm font-semibold mb-2">Tech Stack</label>
-            <input 
-              [(ngModel)]="editProject.tech" 
-              name="tech"
-              type="text" 
-              placeholder="e.g., Angular • TypeScript • Tailwind" 
-              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500" />
-          </div>
+<div>
+  <label class="block text-sm font-semibold mb-2">Project Title</label>
+  <input 
+    [(ngModel)]="editProject.title" 
+    name="title"
+    type="text" 
+    placeholder="Enter project title" 
+    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500" />
+</div>
+
+<div>
+  <label class="block text-sm font-semibold mb-2">Tech Stack</label>
+  <input 
+    [(ngModel)]="editProject.tech" 
+    name="tech"
+    type="text" 
+    placeholder="e.g., Angular • TypeScript • Tailwind" 
+    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500" />
+</div>
+
+<!-- ⭐ IMAGE INPUT -->
+<div>
+  <label class="block text-sm font-semibold mb-2">Project Image</label>
+
+  <input
+    type="file"
+    accept="image/*"
+    (change)="onEditProjectImageSelected($event)"
+    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500" />
+
+  <!-- Image Preview -->
+  <img
+    *ngIf="editProject.image"
+    [src]="editProject.image"
+    class="mt-2 w-40 h-24 object-cover rounded border">
+</div>
+
+<div>
+    <label class="block text-sm font-semibold mb-2">Role</label>
+  <textarea 
+    
+    name="role"
+    rows="3"
+    placeholder="e.g., Angular • TypeScript • Tailwind" 
+    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500"></textarea>
+</div>
           
 
           <div class="flex gap-3 pt-4">

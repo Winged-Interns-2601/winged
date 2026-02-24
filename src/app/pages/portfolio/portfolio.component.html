@@ -39,7 +39,7 @@
 <section class="grid md:grid-cols-2 items-center -gap-18 py-12 text-white mt-44">  
   
 <div >
-  <p class="text-sm text-white">Hey, I'm a</p>
+  <p class="text-white text-xl">Hey, I'm a</p>
 
 <h1 class="text-5xl md:text-6xl font-extrabold leading-tight mt-10">
     {{ user?.firstName }} <br> {{ user?.lastName }}
@@ -57,9 +57,7 @@
 
 
         <div>
-          <p class="text-lg font-semibold -ml-45 mt-40 text-[#5fd0ff] ">
-            {{ portfolio?.designation }} Developer
-          </p>
+
           <!-- <p class="text-sm text-gray-200 mt-2 ">
             From logo to language, I build brands that connect and convert.
           </p> -->
@@ -122,7 +120,7 @@
     <!-- Left -->
     <div>
       <p class="text-orange-400 uppercase text-sm mb-3 tracking-widest">
-        Behind the Designs
+        Summary
       </p>
 
       <h2 class="text-4xl md:text-5xl font-extrabold leading-tight">
@@ -132,19 +130,26 @@
     </div>
 
     <!-- Right -->
-<div class="bg-[#002487] text-white p-8 rounded-2xl max-w-3xl">
+<div class="bg-[#002487] text-white p-8 rounded-2xl max-w-3xl mt-5">
 
-  <!-- Skills -->
-  <section *ngIf="portfolio?.skills?.length > 0" class="mb-8">
-    <h2 class="text-2xl font-bold mb-4">Skills</h2>
-
-    <div class="flex flex-wrap gap-3">
-      <span *ngFor="let skill of portfolio.skills"
-            class="bg-blue-600 px-4 py-2 rounded-full text-sm font-medium shadow">
+  <div>
+    <h2 class="text-2xl font-bold mb-4">Designation</h2>
+<p class=" text-4xl md:text-5xl font-extrabold leading-tight mb-10">
+  
+  {{ portfolio?.designation }} Developer
+</p>
+    <!-- Skills -->
+    <section *ngIf="portfolio?.skills?.length > 0" class="mb-8">
+      <h2 class="text-2xl font-bold mb-4">Skills</h2>
+      
+      <div class="flex flex-wrap gap-3">
+        <span *ngFor="let skill of portfolio.skills"
+        class="bg-blue-600 px-4 py-2 rounded-full text-sm font-medium shadow">
         {{ skill }}
       </span>
     </div>
   </section>
+</div>
 
 
 
@@ -189,7 +194,14 @@
       <div *ngFor="let project of projects"
            class="relative h-74 rounded-xl overflow-hidden group">
 
-           <div class="w-full h-full bg-gray-700 flex items-center justify-center text-white">
+           <img
+  *ngIf="project.image"
+  [src]="project.image"
+  class="w-full h-full object-cover"
+/>
+
+<div *ngIf="!project.image"
+     class="w-full h-full bg-gray-700 flex items-center justify-center text-white">
   {{ project.title }}
 </div>
 

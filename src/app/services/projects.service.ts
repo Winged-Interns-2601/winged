@@ -5,7 +5,7 @@ import { ProjectService } from './project.service';
 import { AuthService } from './auth.service';
 
 export interface Project {
-image: any;
+image?: string;
   id?: string | number;
   title: string;
   tech?: string;
@@ -30,70 +30,71 @@ export class ProjectsService {
 
   /* ---------------- ADD PROJECT ---------------- */
 
-addProject(title: string, tech?: string) {
-  // Backend requires a non-null `image` field; use a sensible default when none provided
-  const payload = {
-  projectName: title,
-  description: "Project description",
-  techStack: tech || ''
-};
+addProject(employeeId:number, title: string, tech?: string, file?: File) {
 
+  const formData = new FormData();
 
-  const employeeId = this.auth.getLoggedInUser()?.employeeId;
-  const req$ = this.projectApi.addProject(employeeId, payload).pipe(
-    tap((created: any) => {
+  formData.append("projectName", title);
+  formData.append("description", "Project description");
+  formData.append("techStack", tech || "");
+
+  if (file) {
+    formData.append("image", file);
+  }
+
+  const req$ = this.projectApi.addProject(employeeId, formData).pipe(
+    tap((created:any) => {
+
       const project: Project = {
-        id: created?.id ?? undefined,
-        title: created?.title ?? title,
-        tech: created?.tech ?? tech ?? '',
-        description: created?.description ?? '',
-        image: undefined
+        id: created?.id,
+        title: created?.projectName,
+        tech: created?.techStack,
+        description: created?.description,
+        image: created?.image
+  ? (created.image.startsWith('data:image')
+      ? created.image
+      : 'data:image/png;base64,' + created.image)
+  : ('')
       };
-      // update in-memory list when backend returns
+
       this.setProjects([...this.value, project]);
     }),
-    // share the same response for callers that also subscribe (prevents duplicate HTTP posts)
-    shareReplay({ bufferSize: 1, refCount: true })
+    shareReplay({ bufferSize:1, refCount:true })
   );
 
-  // Keep backward compatibility (trigger the request now) and also return observable
-  req$.subscribe({
-    next: (created: any) => console.log('ProjectsService.addProject: backend response ->', created),
-    error: (err) => console.error('Add project failed', err)
-  });
-
-  return req$; // callers may subscribe to react to success/failure
+  req$.subscribe();
+  return req$;
 }
-
 
 
   /* ---------------- UPDATE PROJECT ---------------- */
 
-  updateProject(id: string | number, title: string, tech?: string) {
-    const numericId = Number(id);
-    if (!isFinite(numericId)) {
-      console.warn('ProjectsService.updateProject: invalid id', id);
-      return;
-    }
+updateProject(id: number, title: string, tech: string, image?: string) {
 
-    const payload: any = { projectName: title };
-    if (tech !== undefined) { 
-      payload.techStack = tech; 
-    }
+  const numericId = Number(id);
+  if (!isFinite(numericId)) return;
 
-    console.log('Updating project with payload:', payload);
+  const payload: any = {
+    projectName: title,
+    techStack: tech || '',
+    description: "Updated project", // ⭐ REQUIRED FIELD
+    image: image || ''
+  };
 
-    this.projectApi.updateProject(numericId, payload).subscribe({
-      next: () => {
-        const updated = this.value.map(p =>
-          Number(p.id) === numericId ? { ...p, title, tech } : p
-        );
-        this.setProjects(updated);
-        console.log('Project updated successfully in frontend');
-      },
-      error: (err) => console.warn('Update failed', err)
-    });
-  }
+  console.log("UPDATE PAYLOAD =>", payload);
+
+  this.projectApi.updateProject(numericId, payload).subscribe({
+    next: () => {
+      const updated = this.value.map(p =>
+        Number(p.id) === numericId
+          ? { ...p, title, tech, image }
+          : p
+      );
+      this.setProjects(updated);
+    },
+    error: (err) => console.warn('Update failed', err)
+  });
+}
 
   /* ---------------- DELETE PROJECT ---------------- */
 

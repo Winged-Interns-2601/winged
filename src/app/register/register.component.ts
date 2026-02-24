@@ -213,6 +213,7 @@ formData = {
     projects: this.formData.portfolio.projects.map(p => ({
     projectName: p.projectName,
     description: p.description,
+    image: p.image,
     techStack: p.techStack,
     startDate: p.startDate ? new Date(p.startDate) : null,
     endDate: p.endDate ? new Date(p.endDate) : null
@@ -268,6 +269,7 @@ formData = {
       projectName: '',
       description: '',
       techStack: '',
+      image: '',
       startDate: '',
       endDate: ''
     };

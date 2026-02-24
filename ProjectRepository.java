@@ -12,6 +12,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     // Optional: Find projects by title
     Optional<Project> findByTitle(String title);
     
-    // Optional: Find projects by tech stack
+    // Optional: Find projects by skilss
     List<Project> findByTechContaining(String tech);
 }

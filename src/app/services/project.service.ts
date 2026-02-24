@@ -10,8 +10,11 @@ export class ProjectService {
 
   constructor(private http: HttpClient) {}
 
-addProject(employeeId: number, project: any): Observable<any> {
-  return this.http.post(`${this.API}/add/${employeeId}`, project);
+addProject(employeeId: number, formData: FormData) {
+  return this.http.post(
+    `${this.API}/add/${employeeId}`,
+    formData
+  );
 }
 
 

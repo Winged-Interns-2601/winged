@@ -1,4 +1,4 @@
-import { NgFor, NgIf, DatePipe } from '@angular/common';
+import { NgFor, NgIf, DatePipe, NgClass } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -14,7 +14,7 @@ import { skip, take } from 'rxjs/operators';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [NgFor, NgIf, FormsModule, RouterLink, DatePipe],
+  imports: [NgFor, NgIf, FormsModule, RouterLink, DatePipe, NgClass],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css']
 })
@@ -31,6 +31,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   showSkillModal: boolean = false;
   newSkill: string = '';
 formData: any;
+selectedFile!: File;
 
   constructor(
     private router: Router,
@@ -49,7 +50,9 @@ const normalized = projects.map((p: any) => ({
   title: p.title || p.projectName || '',
   tech: p.tech || p.techStack || '',
   description: p.description || '',
-  image: p.image || null
+  image: p.image
+    ? 'data:image/png;base64,' + p.image
+    : '',
 }));
 
 
@@ -110,7 +113,8 @@ ngOnInit() {
 
   // Load data after subscription
   if ((this.user as any)?.employeeId) {
-    const empId = (this.user as any).employeeId;
+    const empId = (this.user as any)?.employeeId;
+
 
     this.loadPortfolio(empId);
     this.loadProjects(empId);
@@ -127,7 +131,7 @@ ngOnInit() {
   editingId: string | number | null = null;
   editProject: Project = {
     title: '', tech: '',
-    image: undefined
+    image: ''
   };
 
   deleteProject(id: string | number) {
@@ -151,7 +155,7 @@ startEdit(project: Project) {
 cancelEdit() {
   this.showProjectModal = false;
   this.editingId = null;
-  this.editProject = { title: '', tech: '', image: undefined };
+  this.editProject = { title: '', tech: '', image: '' };
 }
 
 
@@ -167,8 +171,12 @@ saveEdit() {
 
   if (id !== null) {
     // update -> existing behavior (ProjectsService updates in-memory list after backend success)
-    this.projectsService.updateProject(id, this.editProject.title, this.editProject.tech);
-
+this.projectsService.updateProject(
+  id,
+  this.editProject.title,
+  this.editProject.tech,
+  this.editProject.image
+);
     // wait for the ProjectsService to emit the updated list, then persist
     this.projectsService.projects$.pipe(skip(1), take(1)).subscribe(() => {
       this.savePortfolioAfterChange();
@@ -176,8 +184,20 @@ saveEdit() {
     });
   } else {
     // add -> use the Observable returned by ProjectsService.addProject so we act after backend success
-    const add$ = this.projectsService.addProject(this.editProject.title, this.editProject.tech);
-    add$.pipe(take(1)).subscribe({
+const empId = (this.user as any)?.employeeId;
+
+if (!empId) {
+  alert("Employee ID not found");
+  return;
+}
+
+const add$ = this.projectsService.addProject(
+  empId,
+  this.editProject.title,
+  this.editProject.tech,
+  this.selectedFile
+);
+add$.pipe(take(1)).subscribe({
       next: () => {
         this.savePortfolioAfterChange();
         this.cancelEdit();
@@ -214,7 +234,7 @@ saveEdit() {
 
 openNewProjectModal() {
   this.editingId = null;
-  this.editProject = { title: '', tech: '', image: undefined };
+  this.editProject = { title: '', tech: '', image: '' };
   this.showProjectModal = true;
 }
 
@@ -230,11 +250,14 @@ openNewProjectModal() {
     const portfolioData = {
       skills: this.user.skills || [],
       designation: this.user.designation || '',
-      projects: (this.projects || []).map(p => ({
-        projectName: p.title || '',
-        description: p.description || '',
-
-      }))
+projects: (this.projects || []).map(p => ({
+  projectName: p.title || '',
+  description: p.description || '',
+  techStack: p.tech || '',   // ⭐ ADD THIS
+  image: p.image
+  ? 'data:image/png;base64,' + p.image
+  : '',
+}))
     };
 
     if (this.portfolioId) {
@@ -336,7 +359,10 @@ openNewProjectModal() {
       projects: (this.projects || []).map(p => ({
         projectName: p.title || '',
         description: p.description || '',
-        tech: p.tech || ''
+        tech: p.tech || '',
+        image: p.image
+  ? 'data:image/png;base64,' + p.image
+  : '',
       }))
     };
 
@@ -471,6 +497,14 @@ loadPortfolio(employeeId: number) {
     }
     document.body.classList.remove('admin-bg');
   }
+
+  onEditProjectImageSelected(event:any) {
+  const file = event.target.files[0];
+
+  if(file){
+    this.selectedFile = file;
+  }
+}
 
      
   

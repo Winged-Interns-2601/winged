@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { NgFor, NgIf } from "@angular/common"; 
+import { NgFor, NgIf } from "@angular/common";
 import { AuthService } from '../../services/auth.service';
 import { IsLoggedService } from '../../services/is-logged.service';
 import { ProjectsService, Project } from '../../services/projects.service';
@@ -18,9 +18,11 @@ import { Subscription } from 'rxjs';
 export class PortfolioComponent implements OnInit, OnDestroy {
 
   user: any;
+  portfolio: any;
   projects: Project[] = [];
-  private subscription: Subscription | null = null;
   loading = true;
+
+  private subscription: Subscription | null = null;
 
   constructor(
     private auth: AuthService,
@@ -29,86 +31,95 @@ export class PortfolioComponent implements OnInit, OnDestroy {
     private projectsService: ProjectsService,
     private projectService: ProjectService,
     private portfolioService: PortfolioService
-  ) { }
+  ) {}
+
+  /* ---------------- LOAD PROJECTS ---------------- */
 
   loadProjects(employeeId: number) {
-  this.projectService.getProjects(employeeId).subscribe({
-    next: (projects: any[]) => {
-      const normalized = projects.map(p => ({
-        id: p.id,
-        title: p.title || p.projectName || '',
-        tech: p.tech || p.techStack || '',
-        description: p.description || '',
-        image: p.image || ''
-      }));
+    this.projectService.getProjects(employeeId).subscribe({
+      next: (projects: any[]) => {
 
-      this.projectsService.setProjects(normalized);
-      console.log('Portfolio projects loaded:', normalized);
-    },
-    error: (err) => console.error('Project load failed', err)
-  });
-}
+        const normalized: Project[] = projects.map((p: any) => ({
+          id: p.id,
+          title: p.title || p.projectName || '',
+          tech: p.tech || p.techStack || '',
+          description: p.description || '',
+          image: p.image
+  ? (p.image.startsWith('data:image')
+      ? p.image
+      : 'data:image/png;base64,' + p.image)
+  : ''
+        }));
 
-loadPortfolio(employeeId: number) {
-  console.log("Calling portfolio API with:", employeeId);
+        this.projectsService.setProjects(normalized);
+        console.log('Portfolio projects loaded:', normalized);
+      },
+      error: (err) => {
+        console.error('Project load failed', err);
+      }
+    });
+  }
 
-  this.portfolioService.getPortfolio(employeeId).subscribe({
-    next: (res: any) => {
-      console.log("BACKEND RESPONSE:", res);
+  /* ---------------- LOAD PORTFOLIO ---------------- */
 
-      this.portfolio = Array.isArray(res) ? res[0] : res;
-      this.loading = false;
-    },
-    error: (err) => {
-      console.log("PORTFOLIO ERROR:", err);
-      this.loading = false;
+  loadPortfolio(employeeId: number) {
+    console.log('Calling portfolio API with:', employeeId);
+
+    this.portfolioService.getPortfolio(employeeId).subscribe({
+      next: (res: any) => {
+        console.log('BACKEND RESPONSE:', res);
+
+        this.portfolio = Array.isArray(res) ? res[0] : res;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('PORTFOLIO ERROR:', err);
+        this.loading = false;
+      }
+    });
+  }
+
+  /* ---------------- INIT ---------------- */
+
+  ngOnInit() {
+
+    document.body.classList.add('admin-bg');
+
+    this.isLoggedService.checkLoggedInStatus();
+
+    if (!this.isLoggedService.isLoggedIn) {
+      this.router.navigate(['/login']);
+      return;
     }
-  });
-}
 
+    const backendUser = this.auth.getLoggedInUser();
 
-  portfolio: any;
+    if (!backendUser?.employeeId) {
+      this.router.navigate(['/login']);
+      return;
+    }
 
-ngOnInit() {
-  document.body.classList.add('admin-bg');
+    this.user = backendUser;
+    const employeeId = Number(backendUser.employeeId);
 
-  // check login status
-  this.isLoggedService.checkLoggedInStatus();
+    // ⭐ subscribe FIRST (best practice)
+    this.subscription = this.projectsService.projects$.subscribe(p => {
+      this.projects = p;
+    });
 
-  if (!this.isLoggedService.isLoggedIn) {
-    this.router.navigate(['/login']);
-    return;
+    // load backend data
+    this.loadPortfolio(employeeId);
+    this.loadProjects(employeeId);
   }
 
-  // get backend logged user
-  const backendUser = this.auth.getLoggedInUser();
-this.user = backendUser;
-
-  if (!backendUser || !backendUser.employeeId) {
-    this.router.navigate(['/login']);
-    return;
-  }
-
-  const employeeId = backendUser.employeeId;
-
-  // load data
-  this.loadPortfolio(employeeId);
-  this.loadProjects(employeeId);
-
-  // subscribe projects
-  this.subscription = this.projectsService.projects$.subscribe(projects => {
-    this.projects = projects;
-  });
-}
+  /* ---------------- DESTROY ---------------- */
 
   ngOnDestroy() {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
-     
+    this.subscription?.unsubscribe();
     document.body.classList.remove('admin-bg');
-  
   }
+
+  /* ---------------- ACTIONS ---------------- */
 
   logout() {
     this.auth.logout();
@@ -118,10 +129,6 @@ this.user = backendUser;
 
   scrollToProject() {
     const projectSection = document.getElementById('project');
-    if (projectSection) {
-      projectSection.scrollIntoView({ behavior: 'smooth' });
-    }
+    projectSection?.scrollIntoView({ behavior: 'smooth' });
   }
-
-
 }
