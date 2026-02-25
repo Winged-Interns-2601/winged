@@ -203,6 +203,9 @@
         <div class="p-4 flex-1">
           <h3 class="text-lg font-semibold">{{ project.title }}</h3>
           <p class="text-sm text-gray-500">{{ project.tech }}</p>
+          <p class="text-sm text-gray-600 mt-1 line-clamp-2">
+  {{ project.summary }}
+</p>
 
         </div>
 
@@ -240,7 +243,7 @@
 </div>
 
 <div>
-  <label class="block text-sm font-semibold mb-2">Tech Stack</label>
+  <label class="block text-sm font-semibold mb-2">Skills</label>
   <input 
     [(ngModel)]="editProject.tech" 
     name="tech"
@@ -266,14 +269,18 @@
     class="mt-2 w-40 h-24 object-cover rounded border">
 </div>
 
-<div>
-    <label class="block text-sm font-semibold mb-2">Role</label>
-  <textarea 
-    
-    name="role"
+<div class="mb-3">
+  <label class="block text-sm font-semibold mb-1">
+    Project Role / Summary
+  </label>
+
+  <textarea
+    [(ngModel)]="editProject.summary"
+    name="projectSummary"
     rows="3"
-    placeholder="e.g., Angular • TypeScript • Tailwind" 
-    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500"></textarea>
+    placeholder="Describe your role in this project..."
+    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500">
+  </textarea>
 </div>
           
 

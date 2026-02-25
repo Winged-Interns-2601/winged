@@ -44,6 +44,7 @@ export class PortfolioComponent implements OnInit, OnDestroy {
           title: p.title || p.projectName || '',
           tech: p.tech || p.techStack || '',
           description: p.description || '',
+          summary: p.summary || '',
           image: p.image
   ? (p.image.startsWith('data:image')
       ? p.image

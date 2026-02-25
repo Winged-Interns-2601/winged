@@ -10,6 +10,7 @@ image?: string;
   title: string;
   tech?: string;
   description?: string;
+  summary?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -30,13 +31,14 @@ export class ProjectsService {
 
   /* ---------------- ADD PROJECT ---------------- */
 
-addProject(employeeId:number, title: string, tech?: string, file?: File) {
+addProject(employeeId:number, title: string, tech?: string, file?: File, summary?: string) {
 
   const formData = new FormData();
 
   formData.append("projectName", title);
   formData.append("description", "Project description");
   formData.append("techStack", tech || "");
+  formData.append("summary ", summary || "");
 
   if (file) {
     formData.append("image", file);
@@ -50,6 +52,7 @@ addProject(employeeId:number, title: string, tech?: string, file?: File) {
         title: created?.projectName,
         tech: created?.techStack,
         description: created?.description,
+        summary: created?.summary,
         image: created?.image
   ? (created.image.startsWith('data:image')
       ? created.image
@@ -69,7 +72,7 @@ addProject(employeeId:number, title: string, tech?: string, file?: File) {
 
   /* ---------------- UPDATE PROJECT ---------------- */
 
-updateProject(id: number, title: string, tech: string, image?: string) {
+updateProject(id: number, title: string, tech: string, image?: string, summary?: string | undefined) {
 
   const numericId = Number(id);
   if (!isFinite(numericId)) return;
@@ -123,6 +126,7 @@ updateProject(id: number, title: string, tech: string, image?: string) {
           title: i.title || i.projectName,
           tech: i.tech || i.techStack,
           description: i.description,
+          summary: i.summary || i.role,
           image: i.image || 'assets/img12.jpg'
         }));
 

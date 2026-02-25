@@ -50,10 +50,12 @@ const normalized = projects.map((p: any) => ({
   title: p.title || p.projectName || '',
   tech: p.tech || p.techStack || '',
   description: p.description || '',
+  summary: p.summary || p.role || '',
   image: p.image
     ? 'data:image/png;base64,' + p.image
     : '',
 }));
+console.log("API RAW:", projects);
 
 
       this.projectsService.setProjects(normalized);
@@ -130,7 +132,7 @@ ngOnInit() {
 
   editingId: string | number | null = null;
   editProject: Project = {
-    title: '', tech: '',
+    title: '', tech: '', summary: '',
     image: ''
   };
 
@@ -155,7 +157,7 @@ startEdit(project: Project) {
 cancelEdit() {
   this.showProjectModal = false;
   this.editingId = null;
-  this.editProject = { title: '', tech: '', image: '' };
+  this.editProject = { title: '', tech: '', summary: '', image: '' };
 }
 
 
@@ -175,7 +177,8 @@ this.projectsService.updateProject(
   id,
   this.editProject.title,
   this.editProject.tech,
-  this.editProject.image
+  this.editProject.image,
+  this.editProject.summary
 );
     // wait for the ProjectsService to emit the updated list, then persist
     this.projectsService.projects$.pipe(skip(1), take(1)).subscribe(() => {
@@ -195,7 +198,8 @@ const add$ = this.projectsService.addProject(
   empId,
   this.editProject.title,
   this.editProject.tech,
-  this.selectedFile
+  this.selectedFile,
+  this.editProject.summary
 );
 add$.pipe(take(1)).subscribe({
       next: () => {
@@ -234,7 +238,7 @@ add$.pipe(take(1)).subscribe({
 
 openNewProjectModal() {
   this.editingId = null;
-  this.editProject = { title: '', tech: '', image: '' };
+this.editProject = { title: '', tech: '', summary: '', image: '' };
   this.showProjectModal = true;
 }
 
@@ -254,9 +258,12 @@ projects: (this.projects || []).map(p => ({
   projectName: p.title || '',
   description: p.description || '',
   techStack: p.tech || '',   // ⭐ ADD THIS
-  image: p.image
-  ? 'data:image/png;base64,' + p.image
-  : '',
+  summary: p.summary || '',
+  image: p.image?.startsWith('data:')
+  ? p.image
+  : p.image
+    ? 'data:image/png;base64,' + p.image
+    : '',
 }))
     };
 
@@ -360,9 +367,12 @@ projects: (this.projects || []).map(p => ({
         projectName: p.title || '',
         description: p.description || '',
         tech: p.tech || '',
-        image: p.image
-  ? 'data:image/png;base64,' + p.image
-  : '',
+        summary: p.summary || '',
+        image: p.image?.startsWith('data:')
+  ? p.image
+  : p.image
+    ? 'data:image/png;base64,' + p.image
+    : '',
       }))
     };
 
@@ -498,11 +508,22 @@ loadPortfolio(employeeId: number) {
     document.body.classList.remove('admin-bg');
   }
 
-  onEditProjectImageSelected(event:any) {
+  onEditProjectImageSelected(event: any) {
   const file = event.target.files[0];
 
-  if(file){
+  if (file) {
+
+    // 1️⃣ store file for backend upload
     this.selectedFile = file;
+
+    // 2️⃣ show preview immediately
+    const reader = new FileReader();
+
+    reader.onload = (e: any) => {
+      this.editProject.image = e.target.result;
+    };
+
+    reader.readAsDataURL(file);
   }
 }
 

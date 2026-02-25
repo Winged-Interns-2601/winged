@@ -5,6 +5,8 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
 import { IsLoggedService } from '../services/is-logged.service';
 import { EmployeeService } from '../services/employee.service';
+import { ProjectService } from '../services/project.service';
+
 
 @Component({
   selector: 'app-register',
@@ -28,6 +30,7 @@ formData = {
   phone: '',
   employeeType: '',
   designation: '',
+
   panNo: '',
   aadharNo: '',
   joiningDate: '',
@@ -44,11 +47,13 @@ formData = {
 
   portfolio: {
   designation: '',
+  summary: '',
   skills: [] as string[],
   projects: [] as Array<{
     projectName: string;
     description: string;
     techStack: string;
+    summary: string;
     startDate?: string;
     endDate?: string;
     image?: string;
@@ -65,7 +70,8 @@ formData = {
     private employeeService: EmployeeService,
     private auth: AuthService,
     private router: Router,
-    private isLoggedService: IsLoggedService
+    private isLoggedService: IsLoggedService,
+    private projectService: ProjectService
   ) {}
 
   nextStep() {
@@ -210,11 +216,15 @@ formData = {
     portfolio: {
     designation: this.formData.portfolio.designation,
     skills: this.formData.portfolio.skills,
+    summary: this.formData.portfolio.summary,
     projects: this.formData.portfolio.projects.map(p => ({
     projectName: p.projectName,
     description: p.description,
-    image: p.image,
+    image: p.image
+  ? p.image.split(',')[1]
+  : null,
     techStack: p.techStack,
+    summary: p.summary,
     startDate: p.startDate ? new Date(p.startDate) : null,
     endDate: p.endDate ? new Date(p.endDate) : null
   }))
@@ -224,13 +234,34 @@ formData = {
 
   this.employeeService.createUser(payload).subscribe({
     next: (response: any) => {
-  this.successMessage = 'Registration successful!';
 
-  localStorage.setItem('LOGGED_IN_USER', JSON.stringify(response));
+  const employeeId = response.employeeId;
 
-  // ⭐ ADD THIS
-  this.auth.getLoggedInUser(); // if method exists
-  this.isLoggedService.loginSuccess();        // mark user as logged in
+  // ADD PROJECTS ONE BY ONE
+//   this.formData.portfolio.projects.forEach(p => {
+
+//     const fd = new FormData();
+
+//     fd.append("projectName", p.projectName);
+//     fd.append("description", p.description || "");
+//     fd.append("techStack", p.techStack || "");
+//     fd.append("summary", p.summary || "");
+
+//     // convert base64 → file (IMPORTANT)
+//     if (p.image) {
+//       const file = this.base64ToFile(p.image, "project.png");
+//       fd.append("image", file);
+//     }
+
+//    this.projectService.addProject(employeeId, fd).subscribe({
+//   next: (res) => {
+//     console.log("PROJECT SAVED:", res);
+//   },
+//   error: (err) => {
+//     console.error("PROJECT ERROR:", err);
+//   }
+// });
+//   });
 
   this.router.navigate(['/portfolio']);
 },
@@ -245,6 +276,19 @@ formData = {
 }
 
   });
+}
+  base64ToFile(base64: string, filename: string): File {
+  const arr = base64.split(',');
+  const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/png';
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+
+  return new File([u8arr], filename, { type: mime });
 }
 
  
@@ -269,6 +313,7 @@ formData = {
       projectName: '',
       description: '',
       techStack: '',
+      summary: '',
       image: '',
       startDate: '',
       endDate: ''
