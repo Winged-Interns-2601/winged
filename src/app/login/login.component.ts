@@ -81,7 +81,7 @@ export class LoginComponent {
   //   });
   // }
 
-  login() {
+login() {
 
   if (!this.email || !this.password) return;
 
@@ -91,13 +91,10 @@ export class LoginComponent {
 
     next: (res: any) => {
 
-      // save token
-      localStorage.setItem("TOKEN", res.token);
+      // res is TOKEN string
+      localStorage.setItem("TOKEN", res);
 
-      
-      localStorage.setItem("EMPLOYEE_ID", res.employeeId);
-
-      this.isLoggedService.loginSuccess(res.token);
+      this.isLoggedService.loginSuccess(res);
 
       this.router.navigate(['/portfolio']);
     },
@@ -105,8 +102,6 @@ export class LoginComponent {
     error: () => {
       this.errorMessage = "Invalid login";
     }
-
   });
-  }
-
+}
 }

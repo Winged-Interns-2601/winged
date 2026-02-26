@@ -53,7 +53,7 @@
   
         <!-- Error -->
         <div *ngIf="errorMessage"
-             class="mb-4 p-1 bg-orange-500 w-[60%] mx-auto text-white rounded text-center">
+             class="mb-4 p-3 bg-orange-500 border border-white text-white rounded">
           {{ errorMessage }}
         </div>
 
@@ -83,7 +83,7 @@
             />
           </div>
 
-          <p class="text-sm text-orange-600 text-right cursor-pointer hover:text-indigo-600">
+          <p class="text-sm text-red-500 text-right cursor-pointer hover:text-indigo-600">
             Forgot password?
           </p>
 
@@ -109,7 +109,7 @@
 
         <p class="text-center text-white mt-4">
           Don't have an account?
-          <a routerLink="/register" class="text-orange-600 font-semibold hover:text-orange-500">
+          <a routerLink="/register" class="text-red-500 font-semibold hover:text-orange-500">
             Register here
           </a>
         </p>

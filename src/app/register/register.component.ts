@@ -266,13 +266,12 @@ formData = {
   this.router.navigate(['/portfolio']);
 },
     error: (err) => {
+
   console.log("BACKEND ERROR:", err);
-  console.log("ERROR BODY:", err.error);
 
   this.errorMessage =
-    err.error?.message ||
-    JSON.stringify(err.error) ||
-    'Validation failed';
+    err?.error?.message ||
+    "Registration failed. Check backend validation.";
 }
 
   });
