@@ -5,47 +5,28 @@ import { Injectable } from '@angular/core';
 })
 export class IsLoggedService {
 
-  isLoggedIn = false;
   showLogin = false;
   showRegister = false;
 
-  constructor() {
-    // Check localStorage on service initialization
-    this.checkLoggedInStatus();
+  // ⭐ ALWAYS READ FROM TOKEN
+  get isLoggedIn(): boolean {
+    return !!localStorage.getItem('TOKEN');
   }
 
-  openLogin() {
-    this.showLogin = true;
-    this.showRegister = false;
-    this.isLoggedIn = false;
-  }
-  
-  loginSuccess(token?: any) {
-  this.isLoggedIn = true;
-  if (token) {
-    localStorage.setItem('TOKEN', token);
-  }
-}
-
-  openRegister() {
-    this.showLogin = false;
-    this.showRegister = true;
+  loginSuccess(token?: string) {
+    if (token) {
+      localStorage.setItem('TOKEN', token);
+    }
   }
 
   logout() {
-    this.isLoggedIn = false;
-    this.showLogin = true;
-    this.showRegister = false;
-    // Remove token from localStorage
     localStorage.removeItem('TOKEN');
+    localStorage.removeItem('CURRENT_USER');
+    localStorage.removeItem('CURRENT_USER_EMAIL');
+    localStorage.removeItem('LOGGED_IN_USER');
   }
 
-checkLoggedInStatus() {
-  const token = localStorage.getItem('TOKEN');
-    if (token) {
-      this.isLoggedIn = true;
-    } else {
-      this.isLoggedIn = false;
-    }
+  checkLoggedInStatus() {
+    // no need anymore
   }
 }

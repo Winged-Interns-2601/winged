@@ -24,6 +24,15 @@ export class PortfolioComponent implements OnInit, OnDestroy {
 
   private subscription: Subscription | null = null;
 
+  // Add getter for summary to handle nested data
+  get portfolioSummary(): string {
+    return this.user?.summary ||                           // Check user object first (from profile component)
+           this.portfolio?.summary || 
+           this.portfolio?.portfolio?.summary || 
+           this.portfolio?.data?.summary || 
+           '';
+  }
+
   constructor(
     private auth: AuthService,
     private router: Router,
@@ -71,6 +80,25 @@ export class PortfolioComponent implements OnInit, OnDestroy {
         console.log('BACKEND RESPONSE:', res);
 
         this.portfolio = Array.isArray(res) ? res[0] : res;
+        console.log('Portfolio data:', this.portfolio);
+        console.log('Portfolio summary:', this.portfolio?.summary);
+        console.log('Portfolio portfolio.summary:', this.portfolio?.portfolio?.summary);
+        
+        // Check all possible summary locations
+        const possibleSummary = this.portfolio?.summary || 
+                               this.portfolio?.portfolio?.summary ||
+                               this.portfolio?.data?.summary ||
+                               '';
+        
+        console.log('Final summary found:', possibleSummary);
+        
+        // If summary is nested, flatten it
+        if (this.portfolio?.portfolio?.summary && !this.portfolio.summary) {
+          this.portfolio.summary = this.portfolio.portfolio.summary;
+          console.log('Flattened summary to portfolio.summary:', this.portfolio.summary);
+        }
+        
+        console.log('Portfolio skills:', this.portfolio?.skills);
         this.loading = false;
       },
       error: (err) => {
@@ -85,13 +113,6 @@ export class PortfolioComponent implements OnInit, OnDestroy {
   ngOnInit() {
 
     document.body.classList.add('admin-bg');
-
-    this.isLoggedService.checkLoggedInStatus();
-
-    if (!this.isLoggedService.isLoggedIn) {
-      this.router.navigate(['/login']);
-      return;
-    }
 
     const backendUser = this.auth.getLoggedInUser();
 

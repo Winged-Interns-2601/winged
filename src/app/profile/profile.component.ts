@@ -7,6 +7,7 @@ import { IsLoggedService } from '../services/is-logged.service';
 import { PortfolioService } from '../services/portfolio.service';
 import { ProjectsService } from '../services/projects.service';
 import { ProjectService } from '../services/project.service';
+import { EmployeeService } from '../services/employee.service';
 import type { Project } from '../services/projects.service';
 import { Subscription } from 'rxjs';
 import { skip, take } from 'rxjs/operators';
@@ -25,13 +26,23 @@ export class ProfileComponent implements OnInit, OnDestroy {
   user: PortfolioUser | null = null;
   portfolioId: number | null = null;  // Track portfolio ID for backend updates
   
+  // Mobile menu properties
+  mobileMenuOpen: boolean = false;
+  
+  // Loading state to prevent actions before portfolio is loaded
+  portfolioLoading: boolean = false;
+  
   // Skill management properties
   showProjectModal = false;
 
   showSkillModal: boolean = false;
   newSkill: string = '';
-formData: any;
-selectedFile!: File;
+  formData: any;
+  selectedFile?: File;
+
+  // Summary modal properties
+  showSummaryModal = false;
+  newSummary = '';
 
   constructor(
     private router: Router,
@@ -39,8 +50,24 @@ selectedFile!: File;
     private isLoggedService: IsLoggedService,
     private portfolioService: PortfolioService,
     private projectsService: ProjectsService,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private employeeService: EmployeeService
   ) {}
+
+  // Add a getter to ensure skills are always available
+  get userSkills(): string[] {
+    return this.user?.skills || [];
+  }
+
+  // Add a setter that preserves skills
+  setUserData(newUserData: any) {
+    const currentSkills = this.user?.skills || [];
+    this.user = {
+      ...newUserData,
+      skills: currentSkills
+    };
+    console.log('🛡️ Skills preserved in setUserData:', this.user?.skills);
+  }
 
   loadProjects(employeeId: number) {
   this.projectService.getProjects(employeeId).subscribe({
@@ -51,9 +78,11 @@ const normalized = projects.map((p: any) => ({
   tech: p.tech || p.techStack || '',
   description: p.description || '',
   summary: p.summary || p.role || '',
-  image: p.image
-    ? 'data:image/png;base64,' + p.image
-    : '',
+ image: p.image
+ ? (p.image.startsWith('data:image')
+      ? p.image
+      : 'data:image/png;base64,' + p.image)
+ : '',
 }));
 console.log("API RAW:", projects);
 
@@ -69,62 +98,88 @@ console.log("API RAW:", projects);
 
 
 ngOnInit() {
-    document.body.classList.add('admin-bg');
 
-  this.isLoggedService.checkLoggedInStatus();
+  document.body.classList.add('admin-bg');
 
-  if (!this.isLoggedService.isLoggedIn) {
+  // ⭐ ONLY backend user
+  const backendUser = this.auth.getLoggedInUser();
+
+  if (!backendUser?.employeeId) {
     this.router.navigate(['/login']);
     return;
   }
 
-  const username = this.auth.getCurrentUser();
-  const email = this.auth.getCurrentUserEmail();
-  const backendUser = this.auth.getLoggedInUser();
-
-  if (backendUser) {
-    const localStorageUser = email ? this.auth.getUserByEmail(email) : null;
-
-    this.user = {
-      ...backendUser,
-      address: backendUser.address?.street || '',
-      city: backendUser.address?.city || '',
-      state: backendUser.address?.state || '',
-      country: backendUser.address?.country || '',
-      pinCode: backendUser.address?.pinCode || '',
-      panNO: backendUser.panNO || backendUser.panno || '',
-      skills: localStorageUser?.skills || backendUser.skills || []
-    };
-  }
-
-  if (!this.user) {
-    this.user = username ? this.auth.getUserByUsername(username) : null;
-    if (!this.user) {
-      this.user = email ? this.auth.getUserByEmail(email) : null;
-    }
-  }
-
+  // Set initial user from localStorage
+  this.user = backendUser;
+  
+  // ensure skills and summary exist initially
   if (this.user && !this.user.skills) {
     this.user.skills = [];
   }
-
-  // IMPORTANT — subscribe BEFORE loading
-  this.projectsSub = this.projectsService.projects$.subscribe(p => {
-    this.projects = p;
-  });
-
-  // Load data after subscription
-  if ((this.user as any)?.employeeId) {
-    const empId = (this.user as any)?.employeeId;
-
-
-    this.loadPortfolio(empId);
-    this.loadProjects(empId);
-  } else {
-    this.projectsService.setProjects([]);
+  if (this.user && this.user.summary === undefined) {
+    this.user.summary = '';
   }
 
-  this.testDatabaseConnection();
+  // subscribe first
+  this.projectsSub = this.projectsService.projects$.subscribe(p => {
+    console.log('🔄 ProfileComponent received projects update:', p);
+    console.log('📊 Previous projects count:', this.projects.length);
+    console.log('📊 New projects count:', p.length);
+    this.projects = p;
+    console.log('✅ UI should update with new projects');
+  });
+
+  const empId = Number(backendUser.employeeId);
+
+  // Load portfolio first, then fetch employee data
+  console.log('🔄 Starting portfolio load for employee:', empId);
+  this.loadPortfolio(empId).then(() => {
+    console.log('✅ Portfolio loaded, now fetching employee data');
+    console.log('👤 User skills after portfolio load:', this.user?.skills);
+    
+    // Fetch complete employee data from backend (but don't overwrite skills from portfolio)
+    console.log('Fetching employee data for ID:', backendUser.employeeId);
+    this.employeeService.getByEmployeeId(backendUser.employeeId).subscribe({
+      next: (completeEmployee: any) => {
+        console.log('Complete employee data received:', completeEmployee);
+        
+        // Preserve existing skills and summary from portfolio, update other fields
+        const existingSkills = this.user?.skills || [];
+        const existingSummary = this.user?.summary || '';
+        console.log('🎯 Preserving skills:', existingSkills);
+        console.log('📝 Preserving summary:', existingSummary);
+        
+        // Merge employee data but NEVER overwrite skills and summary
+        this.user = {
+          ...completeEmployee,
+          skills: existingSkills, // Always keep portfolio skills
+          summary: existingSummary   // ⭐ ADD THIS
+        };
+        
+        console.log('👤 Final user after employee data merge:', this.user);
+      },
+      error: (err) => {
+        console.error('Failed to fetch complete employee data:', err);
+        // Fallback to localStorage data
+        console.log('Falling back to localStorage data:', backendUser);
+        
+        // Ensure skills and summary are preserved even in error case
+        const existingSkills = this.user?.skills || [];
+        const existingSummary = this.user?.summary || '';
+        this.user = {
+          ...backendUser,
+          skills: existingSkills,
+          summary: existingSummary
+        };
+        
+        if (this.user && !this.user.skills) {
+          this.user.skills = [];
+        }
+      }
+    });
+  });
+
+  this.loadProjects(empId);
 }
 
 
@@ -162,58 +217,186 @@ cancelEdit() {
 
 
 saveEdit() {
+
   if (!this.editProject.title || !this.editProject.tech) {
     alert('Please fill in title and tech stack');
     return;
   }
 
-  const id = this.editingId !== null && this.editingId !== undefined && !isNaN(Number(this.editingId))
-    ? Number(this.editingId)
-    : null;
+  const empId = (this.user as any)?.employeeId;
 
-  if (id !== null) {
-    // update -> existing behavior (ProjectsService updates in-memory list after backend success)
-this.projectsService.updateProject(
-  id,
-  this.editProject.title,
-  this.editProject.tech,
-  this.editProject.image,
-  this.editProject.summary
-);
-    // wait for the ProjectsService to emit the updated list, then persist
-    this.projectsService.projects$.pipe(skip(1), take(1)).subscribe(() => {
-      this.savePortfolioAfterChange();
-      this.cancelEdit();
-    });
-  } else {
-    // add -> use the Observable returned by ProjectsService.addProject so we act after backend success
-const empId = (this.user as any)?.employeeId;
+  if (!empId) {
+    alert("Employee ID not found");
+    return;
+  }
 
-if (!empId) {
-  alert("Employee ID not found");
-  return;
-}
+  // ===============================
+  // EDIT EXISTING PROJECT
+  // ===============================
+  if (this.editingId !== null) {
 
-const add$ = this.projectsService.addProject(
-  empId,
-  this.editProject.title,
-  this.editProject.tech,
-  this.selectedFile,
-  this.editProject.summary
-);
-add$.pipe(take(1)).subscribe({
-      next: () => {
+    const id =
+      typeof this.editingId === 'string'
+        ? parseInt(this.editingId)
+        : this.editingId;
+
+    console.log('🔍 === STARTING PROJECT IMAGE UPDATE ===');
+    console.log('📝 Updating project:', id);
+    
+    const payload = {
+      projectName: this.editProject.title,
+      techStack: this.editProject.tech,
+      description: this.editProject.summary || "Updated project",
+      image: this.selectedFile ? this.editProject.image : undefined
+    };
+    
+    console.log('📤 Update payload:', payload);
+    console.log('📁 Selected file:', this.selectedFile);
+    console.log('🖼️ EditProject.image:', this.editProject.image ? 'Base64 present' : 'No base64');
+    console.log('🖼️ Image being sent:', this.editProject.image ? 'Base64 image present' : 'No image');
+
+    this.projectService.updateProject(id, payload, this.selectedFile).subscribe({
+      next: (response) => {
+        console.log('✅ === BACKEND RESPONSE RECEIVED ===');
+        console.log('📥 Backend response:', response);
+        console.log('📥 Response type:', typeof response);
+        console.log('📥 Response keys:', response ? Object.keys(response) : 'No response');
+        
+        if (response?.image) {
+          console.log('🖼️ Backend returned image:', response.image.substring(0, 50) + '...');
+          console.log('🖼️ Image starts with data:', response.image.startsWith('data:'));
+          console.log('🖼️ Image starts with http:', response.image.startsWith('http'));
+        } else {
+          console.log('❌ No image in backend response');
+        }
+
+        // Only update local array immediately - don't call ProjectsService to avoid conflicts
+        const projectIndex = this.projects.findIndex(p => p.id === id);
+        console.log('🔍 Project index found:', projectIndex);
+        
+        if (projectIndex !== -1) {
+          console.log('📋 Current project before update:', this.projects[projectIndex]);
+          
+          let newImage = this.editProject.image || '';
+          console.log('🖼️ Initial newImage from editProject:', newImage ? 'Has image' : 'No image');
+          
+          // If a file was selected, use the base64 image from editProject
+          if (this.selectedFile) {
+            console.log('🔄 Using selected file image (backend not returning image)');
+            newImage = this.editProject.image || '';
+            console.log('🖼️ Using editProject image:', newImage ? 'Has image' : 'No image');
+          } else if (response?.image) {
+            console.log('🔄 Processing backend image response...');
+            // Backend might return base64 or image URL
+            newImage = response.image.startsWith('data:') 
+              ? response.image 
+              : response.image.startsWith('http') 
+                ? response.image 
+                : 'data:image/jpeg;base64,' + response.image;
+            console.log('🖼️ Processed newImage:', newImage ? newImage.substring(0, 50) + '...' : 'No image');
+          } else {
+            console.log('🔄 Using existing image (no file selected and no backend image)');
+          }
+          
+          this.projects[projectIndex] = {
+            ...this.projects[projectIndex],
+            title: this.editProject.title,
+            tech: this.editProject.tech || '',
+            image: newImage,
+            summary: this.editProject.summary
+          };
+          
+          console.log('🔄 === LOCAL PROJECT UPDATED ===');
+          console.log('🔄 Updated project:', this.projects[projectIndex]);
+          console.log('🖼️ Final image in project:', this.projects[projectIndex].image ? 'Image present' : 'No image');
+          console.log('🖼️ Final image length:', this.projects[projectIndex].image?.length || 0);
+        } else {
+          console.log('❌ Project not found in local array');
+        }
+
+        // Clear selected file after update
+        this.selectedFile = undefined;
+        console.log('🗑️ Selected file cleared');
+        
+        // Save portfolio with updated project data (including new image)
+        console.log('💾 === SAVING PORTFOLIO ===');
         this.savePortfolioAfterChange();
+        
+        this.cancelEdit();
+        console.log('🔚 === PROJECT UPDATE COMPLETE ===');
+      },
+      error: (err) => {
+        console.error(' Failed to update project:', err);
+        console.error(' Error status:', err.status);
+        console.error(' Error message:', err.error?.message || err.message);
+        console.error(' Full error:', err);
+        
+        // Show specific error message based on error type
+        if (err.status === 413) {
+          alert('Image file is too large. Please choose a smaller image.');
+        } else if (err.status === 415) {
+          alert('Unsupported image format. Please use JPG, PNG, or GIF.');
+        } else if (err.error?.message?.includes('image')) {
+          alert('Image update failed: ' + err.error.message);
+        } else {
+          alert('Failed to update project. Please try again.');
+        }
+      }
+    });
+
+  }
+
+  // ===============================
+  // ADD NEW PROJECT
+  // ===============================
+  else {
+
+    console.log('🎯 Adding project with data:', {
+      empId,
+      title: this.editProject.title,
+      tech: this.editProject.tech,
+      file: this.selectedFile,
+      summary: this.editProject.summary
+    });
+
+    const add$ = this.projectsService.addProject(
+      empId,
+      this.editProject.title,
+      this.editProject.tech,
+      this.selectedFile ?? undefined,
+      this.editProject.summary
+    );
+
+    add$.pipe(take(1)).subscribe({
+      next: (newProject) => {
+        console.log('✅ Project added');
+        console.log('📥 New project from backend:', newProject);
+        
+        // Check for potential duplicates
+        const existingProjects = this.projects.filter(p => 
+          p.title === this.editProject.title
+        );
+        console.log('🔍 Existing projects with same title:', existingProjects.length);
+        
+        // ProjectsService already adds the project to the array, so we don't need to add it again here
+        // The ProjectsService.setProjects() call handles the UI update
+        console.log('� ProjectsService will handle UI update automatically');
+        console.log('� Current projects after backend response:', this.projects.map(p => p.title));
+        
+        // Save portfolio with updated project data (including new image)
+        console.log('💾 Saving portfolio after project add...');
+        this.savePortfolioAfterChange();
+        
         this.cancelEdit();
       },
       error: (err) => {
-        console.error('Failed to add project:', err);
+        console.error('❌ Failed to add project:', err);
+        console.error('🔍 Error details:', err.error?.message || err.message);
         alert('Failed to add project. Please try again.');
       }
     });
   }
 }
-
 
 
 
@@ -237,8 +420,22 @@ add$.pipe(take(1)).subscribe({
   }
 
 openNewProjectModal() {
+  // Check if portfolio is loaded before allowing project addition
+  if (this.portfolioLoading) {
+    console.log('❌ Portfolio still loading for project creation');
+    alert('Portfolio is still loading. Please wait...');
+    return;
+  }
+  
+  if (!this.portfolioId) {
+    console.log('❌ No portfolio exists, creating one first...');
+    // Create portfolio automatically if it doesn't exist
+    this.createPortfolioForProject();
+    return;
+  }
+  
   this.editingId = null;
-this.editProject = { title: '', tech: '', summary: '', image: '' };
+  this.editProject = { title: '', tech: '', summary: '', image: '' };
   this.showProjectModal = true;
 }
 
@@ -253,17 +450,14 @@ this.editProject = { title: '', tech: '', summary: '', image: '' };
 
     const portfolioData = {
       skills: this.user.skills || [],
-      designation: this.user.designation || '',
-projects: (this.projects || []).map(p => ({
+      designation: this.user.designation || 'Developer',
+      summary: this.user.summary || '', // ⭐ ADD PORTFOLIO SUMMARY
+      projects: (this.projects || []).map(p => ({
   projectName: p.title || '',
   description: p.description || '',
   techStack: p.tech || '',   // ⭐ ADD THIS
   summary: p.summary || '',
-  image: p.image?.startsWith('data:')
-  ? p.image
-  : p.image
-    ? 'data:image/png;base64,' + p.image
-    : '',
+  image: p.image ? p.image.split(',')[1] : ''
 }))
     };
 
@@ -300,43 +494,221 @@ projects: (this.projects || []).map(p => ({
     this.showMenu = !this.showMenu;
   }
 
-  // Skill management methods
-  addSkill() {
-    this.newSkill = '';
-    this.showSkillModal = true;
+  createPortfolioForProject() {
+    const employeeId = (this.user as any)?.employeeId;
+    
+    if (!employeeId) {
+      console.error('❌ No employeeId found');
+      alert('Employee ID not found. Please refresh the page.');
+      return;
+    }
+
+    const portfolioData = {
+      skills: this.user?.skills || [],
+      projects: [],
+      designation: this.user?.designation || 'Developer',
+      employeeType: this.user?.employeeType || 'Full Time',
+      email: this.user?.email,
+      phone: this.user?.phone
+    };
+
+    console.log('➕ Creating portfolio for project addition:', portfolioData);
+    
+    this.portfolioService.addPortfolio(employeeId, portfolioData).subscribe({
+      next: (response: any) => {
+        this.portfolioId = response?.id || null;
+        console.log('✅ Portfolio created for projects, ID:', this.portfolioId);
+        
+        // Now open the project modal
+        this.editingId = null;
+        this.editProject = { title: '', tech: '', summary: '', image: '' };
+        this.showProjectModal = true;
+        console.log('🔓 Project modal opened after portfolio creation');
+      },
+      error: (error) => {
+        console.error('❌ Error creating portfolio for projects:', error);
+        alert('Failed to create portfolio. Please try again.');
+      }
+    });
   }
 
-  saveSkill() {
-    const trimmedSkill = this.newSkill.trim();
+  // Skill management methods
+  addSkill() {
+    console.log('🎯 addSkill() called');
+    console.log('👤 Current user:', this.user);
+    console.log('📝 Current skills:', this.user?.skills);
     
-    if (!trimmedSkill) {
-      alert('Please enter a valid skill name');
+    // Check if portfolio is loaded before allowing skill addition
+    if (this.portfolioLoading) {
+      console.log('❌ Portfolio still loading');
+      alert('Portfolio is still loading. Please wait...');
       return;
     }
     
-    if (this.user) {
-      if (!this.user.skills) {
-        this.user.skills = [];
-      }
-      
-      // Check if skill already exists
-      if (this.user.skills.includes(trimmedSkill)) {
-        alert('This skill already exists!');
-        return;
-      }
-      
-      // Check skill length (backend allows max 20 skills, each reasonable length)
-      if (this.user.skills.length >= 20) {
-        alert('Maximum 20 skills allowed!');
-        return;
-      }
-      
-      // Add the skill
-      this.user.skills.push(trimmedSkill);
-      
-      // Save to backend via PortfolioService
-      this.saveSkillsToBackend();
+    if (!this.portfolioId) {
+      console.log('❌ No portfolio exists, creating one first...');
+      // Create portfolio automatically if it doesn't exist
+      this.createPortfolioForSkill();
+      return;
     }
+    
+    this.newSkill = '';
+    this.showSkillModal = true;
+    
+    console.log('🔓 Skill modal should now be visible:', this.showSkillModal);
+  }
+
+  createPortfolioForSkill() {
+    const employeeId = (this.user as any)?.employeeId;
+    
+    if (!employeeId) {
+      console.error('❌ No employeeId found');
+      alert('Employee ID not found. Please refresh the page.');
+      return;
+    }
+
+    const portfolioData = {
+      skills: this.user?.skills || [],
+      projects: [],
+      designation: this.user?.designation || 'Developer',
+      employeeType: this.user?.employeeType || 'Full Time',
+      email: this.user?.email,
+      phone: this.user?.phone
+    };
+
+    console.log('➕ Creating portfolio for skill addition:', portfolioData);
+    
+    this.portfolioService.addPortfolio(employeeId, portfolioData).subscribe({
+      next: (response: any) => {
+        this.portfolioId = response?.id || null;
+        console.log('✅ Portfolio created for skills, ID:', this.portfolioId);
+        
+        // Now open the skill modal
+        this.newSkill = '';
+        this.showSkillModal = true;
+        console.log('🔓 Skill modal opened after portfolio creation');
+        
+        // Show success message to user
+        alert('Portfolio created successfully! You can now add skills.');
+      },
+      error: (error) => {
+        console.error('❌ Error creating portfolio for skills:', error);
+        alert('Failed to create portfolio. Please try again.');
+      }
+    });
+  }
+
+  openSummaryModal() {
+    if (this.portfolioLoading) {
+      alert('Portfolio is still loading...');
+      return;
+    }
+
+    // Use same field as register page: user.portfolio.summary
+    this.newSummary = this.user?.portfolio?.summary || this.user?.summary || '';
+    console.log('📝 Opening summary modal with current value:', this.newSummary);
+    this.showSummaryModal = true;
+  }
+
+  saveSummary() {
+    if (!this.user) return;
+
+    // Use same field as register page: user.portfolio.summary
+    if (!this.user.portfolio) {
+      this.user.portfolio = {};
+    }
+    this.user.portfolio.summary = this.newSummary;
+    
+    // Also update user.summary for compatibility
+    this.user.summary = this.newSummary;
+
+    // Save to localStorage for immediate persistence
+    const currentUser = this.auth.getLoggedInUser();
+    if (currentUser) {
+      const updatedUser = {
+        ...currentUser,
+        portfolio: {
+          ...currentUser.portfolio,
+          summary: this.newSummary
+        },
+        summary: this.newSummary
+      };
+      localStorage.setItem('LOGGED_IN_USER', JSON.stringify(updatedUser));
+      console.log('📝 Summary saved to localStorage (portfolio.summary):', this.newSummary);
+    }
+
+    // Also save to portfolio service for backend sync
+    const portfolioData = {
+      skills: this.user.skills || [],
+      designation: this.user.designation || 'Developer',
+      summary: this.newSummary,
+      projects: (this.projects || []).map(p => ({
+        projectName: p.title || '',
+        description: p.description || '',
+        techStack: p.tech || '',
+        summary: p.summary || '',
+        image: p.image?.startsWith('data:')
+          ? p.image
+          : p.image
+            ? 'data:image/png;base64,' + p.image
+            : ''
+      }))
+    };
+
+    // Use same save pipeline as skills
+    this.actualSaveToBackend(portfolioData);
+
+    // Update local user data immediately for UI refresh
+    this.user.summary = this.newSummary;
+    if (this.user.portfolio) {
+      this.user.portfolio.summary = this.newSummary;
+    }
+
+    this.showSummaryModal = false;
+    console.log('✅ Summary saved successfully');
+    console.log('📝 Updated local summary:', this.newSummary);
+  }
+
+  saveSkill() {
+    console.log('🎯 saveSkill() called');
+    console.log('📝 newSkill value:', this.newSkill);
+    console.log('🆔 Current portfolioId:', this.portfolioId);
+    
+    const trimmedSkill = this.newSkill.trim();
+    
+    console.log('🎯 Starting saveSkill process...');
+    console.log('📝 New skill:', trimmedSkill);
+    console.log('👤 Current user:', this.user);
+    console.log('💼 Current skills:', this.user?.skills);
+    
+    if (!trimmedSkill) {
+      console.log('❌ Empty skill, returning');
+      alert('Please enter a skill name');
+      return;
+    }
+    
+    if (!this.user || !this.user.skills) {
+      console.log('❌ No user or skills array found');
+      console.log('User object:', this.user);
+      console.log('User.skills:', this.user?.skills);
+      alert('User data not loaded. Please refresh the page.');
+      return;
+    }
+    
+    // Check for duplicates
+    if (this.user.skills.includes(trimmedSkill)) {
+      console.log('❌ Skill already exists:', trimmedSkill);
+      alert('This skill already exists!');
+      return;
+    }
+    
+    // Add skill to local array
+    this.user.skills.push(trimmedSkill);
+    console.log('✅ Skill added to local array. New skills:', this.user.skills);
+    
+    // Save to backend via PortfolioService
+    console.log('🔄 Calling saveSkillsToBackend...');
+    this.saveSkillsToBackend();
   }
 
   removeSkill(skill: string) {
@@ -359,14 +731,19 @@ projects: (this.projects || []).map(p => ({
       return;
     }
 
+    console.log('🔄 Starting skills save process...');
+    console.log('👤 User data:', this.user);
+    console.log('💼 Portfolio ID:', this.portfolioId);
+    console.log('🎯 Skills to save:', this.user.skills);
+
     // Prepare portfolio data for backend
     const portfolioData = {
       skills: this.user.skills || [],
-      designation: this.user.designation || '',
+      designation: this.user.designation || 'Developer',
       projects: (this.projects || []).map(p => ({
         projectName: p.title || '',
         description: p.description || '',
-        tech: p.tech || '',
+        techStack: p.tech || '',
         summary: p.summary || '',
         image: p.image?.startsWith('data:')
   ? p.image
@@ -376,21 +753,35 @@ projects: (this.projects || []).map(p => ({
       }))
     };
 
-    console.log('🔄 Attempting to save skills to backend...');
     console.log('📤 Portfolio data being sent:', JSON.stringify(portfolioData, null, 2));
-
-    // Verify backend URL
-    const backendUrl = 'http://localhost:8080/api/portfolio';
-    console.log(`🌐 Backend URL: ${backendUrl}`);
+    console.log('🖼️ Project images in portfolio data:');
+    portfolioData.projects.forEach((project, index) => {
+      console.log(`  Project ${index}: ${project.projectName} - Image length: ${project.image ? project.image.length : 0}`);
+    });
 
     // Call backend directly
     this.actualSaveToBackend(portfolioData);
   }
 
   actualSaveToBackend(portfolioData: any) {
+    const employeeId = (this.user as any)?.employeeId;
+    
+    if (!employeeId) {
+      console.error('❌ No employeeId found');
+      alert('Employee ID not found. Please refresh the page.');
+      return;
+    }
+
+    console.log('🔍 actualSaveToBackend called with:');
+    console.log('  - employeeId:', employeeId);
+    console.log('  - portfolioId:', this.portfolioId);
+    console.log('  - portfolioData:', portfolioData);
+
     if (this.portfolioId) {
       // Update existing portfolio
       console.log('📝 Updating existing portfolio ID:', this.portfolioId);
+      console.log('📤 Sending update request with data:', JSON.stringify(portfolioData, null, 2));
+      
       this.portfolioService.updatePortfolio(this.portfolioId, portfolioData).subscribe({
         next: (response) => {
           console.log('✅ Skills saved to backend successfully!');
@@ -398,29 +789,38 @@ projects: (this.projects || []).map(p => ({
           this.cancelAddSkill();
         },
         error: (error) => {
-          console.error('❌ Error saving skills to backend:', error);
-          console.log('📄 Full error details:', JSON.stringify(error, null, 2));
+          console.error('❌ Error updating portfolio:', error);
+          console.log('❌ Error details:', error.error || error.message);
           console.log('🔄 Falling back to localStorage...');
           this.fallbackToLocalStorage();
         }
       });
     } else {
-      // Create new portfolio first
-      const employeeId = (this.user as any).employeeId || 1;
-      console.log('➕ Creating new portfolio for employee ID:', employeeId);
-      this.portfolioService.addPortfolio(employeeId, portfolioData).subscribe({
-        next: (response: any) => {
-          this.portfolioId = response?.id || null;
-          console.log('✅ Portfolio created and skills saved to backend!');
-          console.log('📥 Backend response:', response);
-          console.log('🆔 New portfolio ID:', this.portfolioId);
-          this.cancelAddSkill();
-        },
-        error: (error) => {
-          console.error('❌ Error creating portfolio:', error);
-          console.log('📄 Full error details:', JSON.stringify(error, null, 2));
-          console.log('🔄 Falling back to localStorage...');
-          this.fallbackToLocalStorage();
+      // Check if employee exists but portfolio was deleted - reload portfolio first
+      console.log('🔄 No portfolio ID found, reloading portfolio for employee:', employeeId);
+      this.loadPortfolio(employeeId).then(() => {
+        // Try again after loading
+        if (this.portfolioId) {
+          console.log('✅ Portfolio loaded, retrying save operation');
+          this.actualSaveToBackend(portfolioData);
+        } else {
+          // Create new portfolio only if absolutely necessary
+          console.log('➕ Creating new portfolio for employee ID:', employeeId);
+          this.portfolioService.addPortfolio(employeeId, portfolioData).subscribe({
+            next: (response: any) => {
+              this.portfolioId = response?.id || null;
+              console.log('✅ Portfolio created and skills saved to backend!');
+              console.log('📥 Backend response:', response);
+              console.log('🆔 New portfolio ID:', this.portfolioId);
+              this.cancelAddSkill();
+            },
+            error: (error) => {
+              console.error('❌ Error creating portfolio:', error);
+              console.log('❌ Error details:', error.error || error.message);
+              console.log('🔄 Falling back to localStorage...');
+              this.fallbackToLocalStorage();
+            }
+          });
         }
       });
     }
@@ -435,46 +835,122 @@ projects: (this.projects || []).map(p => ({
   }
 
   cancelAddSkill() {
+    console.log('❌ cancelAddSkill() called');
     this.showSkillModal = false;
     this.newSkill = '';
+    console.log('🔒 Skill modal hidden');
   }
 
   // Single portfolio loader — DB is the source of truth for projects/skills
-loadPortfolio(employeeId: number) {
+loadPortfolio(employeeId: number): Promise<void> {
+  return new Promise((resolve, reject) => {
+    this.portfolioLoading = true; // Set loading state
+    this.portfolioId = null; // reset first
 
-  this.portfolioId = null; // reset first
+    this.portfolioService.getPortfolio(employeeId).subscribe({
 
-  this.portfolioService.getPortfolio(employeeId).subscribe({
+      next: (res: any) => {
 
-    next: (res: any) => {
+        console.log('Portfolio response:', res);
+        
+        if (!res || (Array.isArray(res) && res.length === 0)) {
+          console.log('No portfolio exists for employee:', employeeId);
+          this.portfolioId = null;
+          
+          // Clear summary and skills when portfolio is deleted
+          if (this.user) {
+            this.user.skills = [];
+            this.user.summary = '';
+            
+            // Also update localStorage
+            const currentUser = this.auth.getLoggedInUser();
+            if (currentUser) {
+              const updatedUser = {
+                ...currentUser,
+                skills: [],
+                summary: ''
+              };
+              localStorage.setItem('LOGGED_IN_USER', JSON.stringify(updatedUser));
+              console.log('🗑️ Cleared summary and skills from localStorage');
+            }
+          }
+          
+          this.portfolioLoading = false; // Set loading to false
+          resolve();
+          return;
+        }
 
-      if (!res || (Array.isArray(res) && res.length === 0)) {
-        console.log('No portfolio exists for employee:', employeeId);
+        const portfolio = Array.isArray(res) ? res[0] : res;
+        console.log('Portfolio object:', portfolio);
+
+        this.portfolioId = portfolio?.id ?? null;
+
+        if (this.user) {
+          console.log('Current user before skills update:', this.user);
+          console.log('Portfolio data:', portfolio);
+
+  // Load skills from different possible locations
+  const newSkills = portfolio?.skills || 
+                   portfolio?.portfolio?.skills || 
+                   [];
+  
+  // Load summary from different possible locations (localStorage first for latest value)
+  const currentUser = this.auth.getLoggedInUser();
+  const newSummary = currentUser?.portfolio?.summary ||               // localStorage portfolio.summary (latest)
+                    currentUser?.summary ||                           // localStorage summary (fallback)
+                    portfolio?.summary || 
+                    portfolio?.portfolio?.summary || 
+                    '';
+  
+  console.log('🔍 Summary loading debug:');
+  console.log('  - localStorage portfolio.summary:', currentUser?.portfolio?.summary);
+  console.log('  - localStorage summary:', currentUser?.summary);
+  console.log('  - portfolio summary:', portfolio?.summary);
+  console.log('  - portfolio.portfolio summary:', portfolio?.portfolio?.summary);
+  console.log('  - final summary:', newSummary);
+  
+  console.log('Final skills to load:', newSkills);
+  console.log('Final summary to load:', newSummary);
+  
+  this.user = {
+    ...this.user,
+    skills: newSkills,
+    summary: newSummary
+  };
+
+  console.log('User after skills update:', this.user);
+}
+
+        this.portfolioLoading = false; // Set loading to false
+        resolve();
+      },
+
+      error: (err) => {
+        console.log('No portfolio found (normal case)', employeeId);
         this.portfolioId = null;
-        return;
+        
+        // Clear summary and skills when portfolio is deleted (error case)
+        if (this.user) {
+          this.user.skills = [];
+          this.user.summary = '';
+          
+          // Also update localStorage
+          const currentUser = this.auth.getLoggedInUser();
+          if (currentUser) {
+            const updatedUser = {
+              ...currentUser,
+              skills: [],
+              summary: ''
+            };
+            localStorage.setItem('LOGGED_IN_USER', JSON.stringify(updatedUser));
+            console.log('🗑️ Cleared summary and skills from localStorage (error case)');
+          }
+        }
+        
+        this.portfolioLoading = false; // Set loading to false
+        resolve();
       }
-
-      const portfolio = Array.isArray(res) ? res[0] : res;
-
-      this.portfolioId = portfolio?.id ?? null;
-
-      const localStorageUser =
-        this.user?.email ? this.auth.getUserByEmail(this.user.email) : null;
-
-      if (this.user) {
-        this.user.skills =
-          (localStorageUser?.skills?.length ?? 0) > 0
-            ? localStorageUser!.skills
-            : (portfolio?.skills ?? []);
-      }
-
-      console.log('Portfolio loaded:', portfolio);
-    },
-
-    error: (err) => {
-      console.log('No portfolio found (normal case)', employeeId);
-      this.portfolioId = null;
-    }
+    });
   });
 }
 
@@ -483,22 +959,22 @@ loadPortfolio(employeeId: number) {
 
 
   // Test method to verify database connection (does not re-load portfolio)
-  testDatabaseConnection() {
-    console.log('🔍 Testing database connection...');
+  // testDatabaseConnection() {
+  //   console.log('🔍 Testing database connection...');
 
-    if (!this.user) {
-      console.log('⚠️ No user available to fetch portfolio for.');
-      return;
-    }
+  //   if (!this.user) {
+  //     console.log('⚠️ No user available to fetch portfolio for.');
+  //     return;
+  //   }
 
-    // Avoid duplicate portfolio API calls — use already-loaded portfolio data if present
-    if (this.portfolioId || (this.projects && this.projects.length > 0)) {
-      console.log('✅ Portfolio already loaded; database connection appears healthy.');
-      return;
-    }
+  //   // Avoid duplicate portfolio API calls — use already-loaded portfolio data if present
+  //   if (this.portfolioId || (this.projects && this.projects.length > 0)) {
+  //     console.log('✅ Portfolio already loaded; database connection appears healthy.');
+  //     return;
+  //   }
 
-    console.log('⚠️ Portfolio not loaded yet — call `loadPortfolio(employeeId)` from ngOnInit instead of re-fetching here.');
-  }
+  //   console.log('⚠️ Portfolio not loaded yet — call `loadPortfolio(employeeId)` from ngOnInit instead of re-fetching here.');
+  // }
 
   ngOnDestroy() {
     if (this.projectsSub) {
@@ -525,6 +1001,11 @@ loadPortfolio(employeeId: number) {
 
     reader.readAsDataURL(file);
   }
+}
+
+// Mobile menu toggle
+toggleMobileMenu() {
+  this.mobileMenuOpen = !this.mobileMenuOpen;
 }
 
      

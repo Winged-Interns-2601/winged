@@ -14,16 +14,19 @@ export interface PortfolioUser {
 
   phone?: string;
 
-  address?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-  pinCode?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    pinCode?: string;
+  };
 
   designation?: string;
   employeeType?: string;
 
-  panNO?: string;
+  panNO?: string;  // Backend field
+  panNo?: string;  // Frontend compatibility
   aadharNo?: string;
 
   joiningDate?: string;
@@ -32,12 +35,14 @@ export interface PortfolioUser {
   name?: string;
   role?: string;
   about?: string;
+  summary?: string;  // Portfolio summary
 
   skills?: any[];
   projects?: any[];
 
   portfolio?: {
     designation?: string;
+    summary?: string;
     skills?: any[];
     projects?: any[];
   };
@@ -67,7 +72,7 @@ export class AuthService {
   );
 }
 
-  private API = environment.apiUrl;
+  private API = `${environment.apiUrl}/auth`;
   private currentUser: string | null = null;
   private STORAGE_KEY = 'PORTFOLIO_USERS';
   
@@ -79,11 +84,17 @@ export class AuthService {
 
   /* ================= BACKEND LOGIN ================= */
 
-  loginBackend(username: string, password: string) {
+  loginBackend(email: string, password: string) {
   return this.http.post(`${this.API}/login`, {
-    username,
-    password
+    email: email,
+    password: password
   });
+}
+// add import
+// import { environment } ... already present
+
+registerBackend(data: any) {
+  return this.http.post(`${this.API}/register`, data);
 }
 
   /* ================= TOKEN ================= */
@@ -97,6 +108,13 @@ export class AuthService {
   }
 
   logout() {
+    // Preserve summary before clearing user data
+    const currentUser = this.getLoggedInUser();
+    if (currentUser?.summary) {
+      localStorage.setItem("PRESERVED_SUMMARY", currentUser.summary);
+      console.log('📝 Summary preserved before logout:', currentUser.summary);
+    }
+    
     localStorage.removeItem("TOKEN");
     localStorage.removeItem("CURRENT_USER");
     localStorage.removeItem("CURRENT_USER_EMAIL");
@@ -106,10 +124,16 @@ export class AuthService {
 
   /* ================= USER HELPERS ================= */
 
-  getLoggedInUser(): any | null {
-    const stored = localStorage.getItem('LOGGED_IN_USER');
-    return stored ? JSON.parse(stored) : null;
+  getLoggedInUser() {
+  const user = localStorage.getItem("LOGGED_IN_USER");
+  const preservedSummary = localStorage.getItem("PRESERVED_SUMMARY");
+  if (user && preservedSummary) {
+    const userData = JSON.parse(user);
+    userData.summary = preservedSummary;
+    return userData;
   }
+  return user ? JSON.parse(user) : null;
+}
 
   getCurrentUser() {
     return localStorage.getItem('CURRENT_USER');

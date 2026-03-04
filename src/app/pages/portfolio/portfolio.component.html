@@ -1,47 +1,40 @@
-  <div class=" flex-1 div2">
+  <div class="flex-1 div2">
     
-  <div class=" mx-auto">
-    
+  <div class="mx-auto">
 
-    <div class="bg-[#002487] bg-opacity-50  rounded-lg shadow-md">
+    <div class="bg-[#002487] bg-opacity-50 rounded-lg shadow-md">
 
-      <div class="flex min-h-screen">
+      <div class="flex flex-col min-h-screen">
 
-  
-  <div class="div3 relative min-h-[500px] w-full  mx-auto  rounded-lg overflow-hidden p-10 h-149 ">
+  <div class="div3 relative min-h-125 w-full mx-auto rounded-lg overflow-hidden p-4 lg:p-10">
 
   
-    <div class="relative z-10 ">
+    <div class="relative z-10">
   
+
+      <div class="flex flex-col lg:flex-row justify-between items-center mb-12 text-white gap-4">
+        <img src="assets/image5.png" alt="Logo" class="h-12 lg:h-15 pl-5">
   
-      <div class="flex justify-between items-center mb-12 text-white">
-        <img src="assets/image5.png" alt="Logo" class="h-15 pl-5">
-  
-        <div class="flex items-center gap-8 text-sm font-medium">
+        <div class="flex items-center gap-4 lg:gap-8 text-sm font-medium">
 
 <a href="/profile"
-   class="bg-blue-600 text-white px-5 py-2.5 rounded-xl
+   class="bg-blue-600 text-white px-4 lg:px-5 py-2.5 rounded-xl
           shadow-md hover:bg-blue-700 hover:shadow-lg
           transition duration-200 ease-in-out font-medium">
   Profile
 </a>
           
-
-
-
-  
-  
         </div>
   
       </div>
       
   
-<section class="grid md:grid-cols-2 items-center -gap-18 py-12 text-white mt-44">  
-  
-<div >
-  <p class="text-white text-xl">Hey, I'm a</p>
+<section class="grid md:grid-cols-2 items-center -gap-18 py-8 lg:py-12 text-white mt-8 lg:mt-44">  
 
-<h1 class="text-5xl md:text-6xl font-extrabold leading-tight mt-10">
+<div>
+  <p class="text-white text-lg lg:text-xl">Hey, I'm a</p>
+
+<h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mt-4 lg:mt-10">
     {{ user?.firstName }} <br> {{ user?.lastName }}
       <!-- Designation -->
   <!-- <section class="mb-8">
@@ -114,36 +107,40 @@
   </div>
 
 
-<section class="bg-[#002487] text-white py-20 px-10 rounded-2xl ml-35">
-  <div class="grid md:grid-cols-2 gap-10 items-center">
+<section class="bg-[#002487] text-white py-12 lg:py-20 px-4 lg:px-10 rounded-2xl mx-4 lg:ml-35">
+  <div class="grid md:grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-center">
 
     <!-- Left -->
     <div>
-      <p class="text-orange-400 uppercase text-sm mb-3 tracking-widest">
+      <p class="text-orange-400 uppercase text-xs lg:text-sm mb-3 tracking-widest">
         Summary
       </p>
 
-      <h2 class="text-4xl md:text-5xl font-extrabold leading-tight">
-        {{ portfolio?.summary}}
-      </h2>
+      <div *ngIf="portfolioSummary" class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight mb-6 lg:mb-10">
+        {{ portfolioSummary }}
+      </div>
+      
+      <div *ngIf="!portfolioSummary" class="text-base lg:text-lg text-gray-400 italic">
+        No summary available
+      </div>
     </div>
 
     <!-- Right -->
-<div class="bg-[#002487] text-white p-8 rounded-2xl max-w-3xl mt-5">
+<div class="bg-[#002487] text-white p-6 lg:p-8 rounded-2xl max-w-3xl mt-5">
 
   <div>
-    <h2 class="text-2xl font-bold mb-4">Designation</h2>
-<p class=" text-4xl md:text-5xl font-extrabold leading-tight mb-10">
+    <h2 class="text-xl lg:text-2xl font-bold mb-4">Designation</h2>
+<p class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight mb-6 lg:mb-10">
   
   {{ portfolio?.designation }} Developer
 </p>
     <!-- Skills -->
     <section *ngIf="portfolio?.skills?.length > 0" class="mb-8">
-      <h2 class="text-2xl font-bold mb-4">Skills</h2>
+      <h2 class="text-xl lg:text-2xl font-bold mb-4">Skills</h2>
       
-      <div class="flex flex-wrap gap-3">
+      <div class="flex flex-wrap gap-2 lg:gap-3">
         <span *ngFor="let skill of portfolio.skills"
-        class="bg-blue-600 px-4 py-2 rounded-full text-sm font-medium shadow">
+        class="bg-blue-600 px-3 lg:px-4 py-2 rounded-full text-xs lg:text-sm font-medium shadow">
         {{ skill }}
       </span>
     </div>
@@ -184,14 +181,14 @@
 </section>
 
 <!-- Projects Section -->
-<section class="py-16 bg-[#002487]">
-  <div class="max-w-6xl mx-auto px-6">
-    <h2 class="text-3xl font-bold mb-8 text-center text-white">My Projects</h2>
+<section class="py-12 lg:py-16 bg-[#002487]">
+  <div class="max-w-6xl mx-auto px-4 lg:px-6">
+    <h2 class="text-2xl lg:text-3xl font-bold mb-6 lg:mb-8 text-center text-white">My Projects</h2>
     
     <!-- Projects Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
       <div *ngFor="let project of projects"
-           class="relative h-74 rounded-xl overflow-hidden group">
+           class="relative h-64 sm:h-74 lg:h-80 rounded-xl overflow-hidden group">
 
            <img
   *ngIf="project.image"
@@ -200,18 +197,18 @@
 />
 
 <div *ngIf="!project.image"
-     class="w-full h-full bg-gray-700 flex items-center justify-center text-white">
+     class="w-full h-full bg-gray-700 flex items-center justify-center text-white text-center p-4">
   {{ project.title }}
 </div>
-
 
         <!-- Dark overlay -->
         <div class="absolute inset-0 bg-black/40"></div>
 
         <!-- Text -->
-        <div class="absolute bottom-4 left-4 text-white z-10">
-          <h3 class="text-lg font-semibold">{{ project.title }}</h3>
-          <p class="text-sm text-gray-200">{{ project.tech }}</p>
+        <div class="absolute bottom-2 lg:bottom-4 left-2 lg:left-4 text-white z-10">
+          <h3 class="text-base lg:text-lg font-semibold">{{ project.title }}</h3>
+          <p class="text-xs lg:text-sm text-gray-200">{{ project.tech }}</p>
+          <p class="text-xs lg:text-sm text-gray-200 line-clamp-2"> {{ project.summary || project.description || 'No summary available' }}</p>
         </div>
 
       </div>
@@ -223,10 +220,10 @@
 </div>
 
 
-    <div *ngIf="!loading && !portfolio" class="text-center py-20 text-white">
-      <h2 class="text-3xl font-bold mb-4">User not found</h2>
-      <p class="text-orange-200">Please log in again</p>
-    </div>
+    <!-- <div *ngIf="!loading && !portfolio" class="text-center py-16 lg:py-20 text-white px-4">
+      <h2 class="text-2xl lg:text-3xl font-bold mb-4">User not found</h2>
+      <p class="text-orange-200 text-base lg:text-lg">Please log in again</p>
+    </div> -->
   </div>
   </div>
 

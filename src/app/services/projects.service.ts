@@ -33,16 +33,28 @@ export class ProjectsService {
 
 addProject(employeeId:number, title: string, tech?: string, file?: File, summary?: string) {
 
+  console.log('🔥 ProjectsService.addProject() called with:');
+  console.log('  employeeId:', employeeId);
+  console.log('  title:', title);
+  console.log('  tech:', tech);
+  console.log('  file:', file ? file.name : 'no file');
+  console.log('  summary:', summary);
+
   const formData = new FormData();
 
   formData.append("projectName", title);
-  formData.append("description", "Project description");
+  formData.append("description", summary || "Project description");
   formData.append("techStack", tech || "");
-  formData.append("summary ", summary || "");
+  formData.append("summary", summary || "");
 
   if (file) {
     formData.append("image", file);
   }
+
+  console.log('📤 FormData being sent:');
+  formData.forEach((value, key) => {
+    console.log(`  ${key}:`, value);
+  });
 
   const req$ = this.projectApi.addProject(employeeId, formData).pipe(
     tap((created:any) => {
@@ -77,25 +89,38 @@ updateProject(id: number, title: string, tech: string, image?: string, summary?:
   const numericId = Number(id);
   if (!isFinite(numericId)) return;
 
+  console.log('🔧 ProjectsService.updateProject called with:', { id, title, tech, image, summary });
+
   const payload: any = {
     projectName: title,
     techStack: tech || '',
-    description: "Updated project", // ⭐ REQUIRED FIELD
+    description: summary || "Updated project", // ✅ Use summary for description
     image: image || ''
   };
 
-  console.log("UPDATE PAYLOAD =>", payload);
+  console.log("📤 UPDATE PAYLOAD =>", payload);
 
   this.projectApi.updateProject(numericId, payload).subscribe({
     next: () => {
-      const updated = this.value.map(p =>
+      console.log('✅ Backend update successful');
+      
+      const currentProjects = this.value;
+      console.log('📋 Current projects before update:', currentProjects);
+      
+      const updated = currentProjects.map(p =>
         Number(p.id) === numericId
-          ? { ...p, title, tech, image }
+          ? { ...p, title, tech, image, summary, description: summary || "Updated project" }  // ✅ Add description field
           : p
       );
+      
+      console.log('🔄 Updated projects array:', updated);
       this.setProjects(updated);
+      console.log('✅ Local state updated, UI should refresh now');
     },
-    error: (err) => console.warn('Update failed', err)
+    error: (err) => {
+      console.error('❌ Update failed:', err);
+      console.warn('Update failed', err);
+    }
   });
 }
 

@@ -1,46 +1,36 @@
 <div class="relative min-h-screen bg-[#002487]">
 
+  <!-- Mobile Menu Toggle -->
+  <button (click)="toggleMobileMenu()" class="lg:hidden fixed top-4 left-4 z-50 bg-purple-600 text-white p-2 rounded-lg">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+    </svg>
+  </button>
+
   <!-- Sidebar -->
-<aside class="fixed left-0 top-0 h-screen w-64 bg-[#002487] p-5 flex flex-col justify-between shadow-2xl shadow-white/20 rounded-2xl">
+  <aside [ngClass]="mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'" 
+         class="fixed left-0 top-0 h-screen w-64 bg-[#002487] p-5 flex flex-col justify-between shadow-2xl shadow-white/20 rounded-2xl transition-transform duration-300 z-40">
     <div class="flex flex-col items-center">
       <img src="assets/image5.png" alt="Logo" class="h-12 mb-8 mx-auto">
 
       <button (click)="openNewProjectModal()"
-      
         class="bg-purple-600 text-white w-full py-2 rounded-lg mb-6 hover:bg-purple-700">
         + Create Project
       </button>
-      <!-- <button (click)="addSkill()"
-      
-        class="bg-pink-600 text-white w-full py-2 rounded-lg mb-6 hover:bg-pink-700">
-        + Add Skill
-      </button> -->
-      <!-- <button (click)="testDatabaseConnection()"
-      
-        class="bg-green-600 text-white w-full py-2 rounded-lg mb-6 hover:bg-green-700">
-        Test DB Connection
-      </button> -->
+
+      <button (click)="openSummaryModal()" class="bg-pink-600 text-white w-full py-2 rounded-lg mb-6">+ Add Summary</button>
 
       <ul class="space-y-4 text-white text-sm">
-
-
         <li class="cursor-pointer hover:text-blue-600">setting</li>
-<li class="cursor-pointer hover:text-red-600" routerLink="/login">
-  Logout
-</li>
+        <li class="cursor-pointer hover:text-red-600" (click)="logout()">
+          Logout
+        </li>
       </ul>
     </div>
-
-    <!-- <div class="bg-purple-100 p-4 rounded-lg text-center">
-      <p class="text-sm">Upgrade to Pro</p>
-      <button class="bg-purple-600 text-white px-4 py-1 rounded mt-2 hover:bg-purple-700">
-        Upgrade
-      </button>
-    </div> -->
   </aside>
 
   <!-- Main -->
-  <main class="ml-64 p-8">
+  <main class="lg:ml-64 p-4 lg:p-8 pt-16 lg:pt-8">
 
     <!-- Top Bar -->
     <div class="flex justify-between items-center mb-6">
@@ -80,7 +70,7 @@
       <div class="flex justify-between items-start gap-6">
         <div class="min-w-0">
           <h3 class="text-2xl font-bold">{{ user?.firstName }} {{ user?.middleName }} {{ user?.lastName }}</h3>
-          <p class="text-gray-600 break-words">{{ user?.email }}</p>
+          <p class="text-gray-600 wrap-break-word">{{ user?.email }}</p>
           <p class="text-gray-600">{{ user?.phone }}</p>
         </div>
 
@@ -94,7 +84,7 @@
         <div>
           <p class="text-gray-500">Address</p>
           <p class="text-gray-800 font-medium">
-            {{ user?.address }}, {{ user?.city }}, {{ user?.state }}, {{ user?.country }} - {{ user?.pinCode }}
+            {{ user?.address?.street }}, {{ user?.address?.city }}, {{ user?.address?.state }}, {{ user?.address?.country }} - {{ user?.address?.pinCode }}
           </p>
         </div>
 
@@ -109,15 +99,64 @@
 
         <div>
           <p class="text-gray-500">PAN</p>
-          <p class="text-gray-800 font-medium">{{ user?.panNO }}</p>
+          <p class="text-gray-800 font-medium">{{ user?.panNO || user?.panNo || 'PAN not found' }}</p>
         </div>
 
         <div>
           <p class="text-gray-500">Aadhar</p>
-          <p class="text-gray-800 font-medium">{{ user?.aadharNo }}</p>
+          <p class="text-gray-800 font-medium">{{ user?.aadharNo || 'Aadhar not found' }}</p>
         </div>
       </div>
     </div>
+
+    <!-- Portfolio Summary Section -->
+
+      <!-- <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-gray-800">Portfolio Summary</h3>
+        <button (click)="openSummaryModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+          + Add Summary
+        </button>
+      </div>
+      
+      <div *ngIf="user?.portfolio?.summary || user?.summary; else noSummary" class="text-gray-700">
+        <p>{{ user?.portfolio?.summary || user?.summary }}</p>
+      </div>
+      
+      <ng-template #noSummary>
+        <div class="text-gray-500 text-sm">
+          No portfolio summary added yet. Click "Add Summary" to get started.
+        </div>
+      </ng-template> -->
+
+      <!-- Add Summary Modal -->
+      <div *ngIf="showSummaryModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg w-96 shadow-xl">
+          <h3 class="text-lg font-bold mb-4">Add Portfolio Summary</h3>
+          
+          <div class="mb-4">
+            <label class="block text-sm font-semibold mb-2 text-gray-700">
+              Portfolio Summary
+            </label>
+            <textarea
+              [(ngModel)]="newSummary"
+              name="portfolioSummary"
+              rows="4"
+              placeholder="Write a short summary about yourself..."
+              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500">
+            </textarea>
+          </div>
+
+          <div class="flex gap-3">
+            <button (click)="saveSummary()" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+              Save
+            </button>
+            <button (click)="showSummaryModal = false" class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    
 
     <!-- Skills Section -->
     <div class="bg-purple-100 p-6 rounded-2xl mb-6">
@@ -128,8 +167,8 @@
         </button>
       </div>
       
-      <div class="flex flex-wrap gap-2 mb-4" *ngIf="user?.skills as skills; else noSkills">
-        <span *ngFor="let skill of skills" 
+      <div class="flex flex-wrap gap-2 mb-4" *ngIf="userSkills.length > 0; else noSkills">
+        <span *ngFor="let skill of userSkills" 
               class="bg-purple-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
           {{ skill }}
           <button (click)="removeSkill(skill)" class="hover:text-red-200 font-bold">×</button>
@@ -137,7 +176,7 @@
       </div>
       
       <ng-template #noSkills>
-        <div *ngIf="!user?.skills || user?.skills?.length === 0" class="text-gray-500 text-sm">
+        <div class="text-gray-500 text-sm">
           No skills added yet. Click "Add Skill" to get started.
         </div>
       </ng-template>
@@ -165,7 +204,7 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-4 gap-4 mb-8">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       <div class="bg-yellow-400 text-white p-4 rounded-xl text-center">
         {{ projects.length }}<br>Projects
       </div>
@@ -184,9 +223,9 @@
     <div class="space-y-4">
       <h2>Projects</h2>
       <div *ngFor="let project of projects"
-        class="relative flex bg-white rounded-xl shadow-md overflow-hidden">
+        class="relative flex flex-col sm:flex-row bg-white rounded-xl shadow-md overflow-hidden">
 
-        <div class="w-40 h-28 bg-gray-200 flex items-center justify-center overflow-hidden">
+        <div class="w-full sm:w-40 h-28 sm:h-auto bg-gray-200 flex items-center justify-center overflow-hidden">
 
   <img
     *ngIf="project.image; else noImage"
@@ -204,7 +243,7 @@
           <h3 class="text-lg font-semibold">{{ project.title }}</h3>
           <p class="text-sm text-gray-500">{{ project.tech }}</p>
           <p class="text-sm text-gray-600 mt-1 line-clamp-2">
-  {{ project.summary }}
+  {{ project.summary || project.description || 'No summary available' }}
 </p>
 
         </div>

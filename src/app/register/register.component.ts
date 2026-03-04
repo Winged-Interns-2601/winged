@@ -5,7 +5,8 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
 import { IsLoggedService } from '../services/is-logged.service';
 import { EmployeeService } from '../services/employee.service';
-import { ProjectService } from '../services/project.service';
+import { ProjectsService } from '../services/projects.service';
+import { PortfolioService } from '../services/portfolio.service';
 
 
 @Component({
@@ -71,7 +72,8 @@ formData = {
     private auth: AuthService,
     private router: Router,
     private isLoggedService: IsLoggedService,
-    private projectService: ProjectService
+    private projectsService: ProjectsService,
+    private portfolioService: PortfolioService
   ) {}
 
   nextStep() {
@@ -176,109 +178,193 @@ formData = {
 
   // Skill management methods for step 4
  
- register() {
+register() {
+
   this.errorMessage = '';
-  this.successMessage = '';
-
-  if (!this.formData.email || !this.formData.password) {
-    this.errorMessage = 'Email and Password are required!';
-    return;
-  }
-
-  const email = this.formData.email.toLowerCase().trim();
-  const password = this.formData.password;
 
   const payload = {
-    employeeId: Math.floor(Date.now()),
+    employeeId: Date.now(),
     firstName: this.formData.firstName,
     middleName: this.formData.middleName,
     lastName: this.formData.lastName,
-    email,
-    password,
-    phone: this.formData.phone,
-    designation: this.formData.portfolio.designation,
+
     employeeType: this.formData.employeeType,
-    joiningDate: new Date(this.formData.joiningDate),
-    exitDate: this.formData.exitDate
-      ? new Date(this.formData.exitDate)
-      : null,
+    designation: this.formData.designation,
+
+    email: this.formData.email.toLowerCase().trim(),
+    password: this.formData.password,
+
+    phone: this.formData.phone,
+
+    address: this.formData.address,
+
+    joiningDate: this.formData.joiningDate,
+    exitDate: this.formData.exitDate || null,
+
     aadharNo: this.formData.aadharNo,
     panNO: this.formData.panNo,
-
-    address: {
-      street: this.formData.address.street,
-      city: this.formData.address.city,
-      state: this.formData.address.state,
-      country: this.formData.address.country,
-      pinCode: this.formData.address.pinCode
-    },
-
+    
+    // ⭐ ADD PORTFOLIO DATA (VERY IMPORTANT)
     portfolio: {
-    designation: this.formData.portfolio.designation,
-    skills: this.formData.portfolio.skills,
-    summary: this.formData.portfolio.summary,
-    projects: this.formData.portfolio.projects.map(p => ({
-    projectName: p.projectName,
-    description: p.description,
-    image: p.image
-  ? p.image.split(',')[1]
-  : null,
-    techStack: p.techStack,
-    summary: p.summary,
-    startDate: p.startDate ? new Date(p.startDate) : null,
-    endDate: p.endDate ? new Date(p.endDate) : null
-  }))
-}
-
+      skills: this.formData.portfolio.skills || [],
+      projects: [], // Projects created individually after registration
+      designation: this.formData.designation,
+      summary: this.formData.portfolio.summary || '' // ⭐ ADD SUMMARY
+    }
   };
 
-  this.employeeService.createUser(payload).subscribe({
-    next: (response: any) => {
+  console.log('📤 Registration payload:', payload);
 
-  const employeeId = response.employeeId;
+  this.auth.registerBackend(payload).subscribe({
 
-  // ADD PROJECTS ONE BY ONE
-//   this.formData.portfolio.projects.forEach(p => {
+    next: (response) => {
+      console.log('✅ Registration successful:', response);
+      this.successMessage = "Registration successful";
 
-//     const fd = new FormData();
+      this.auth.loginBackend(payload.email, payload.password)
+        .subscribe((res:any) => {
 
-//     fd.append("projectName", p.projectName);
-//     fd.append("description", p.description || "");
-//     fd.append("techStack", p.techStack || "");
-//     fd.append("summary", p.summary || "");
+          localStorage.setItem("TOKEN", res.token);
+          console.log('🔑 Registration token stored:', res.token);
+          console.log('🔑 Registration token verification:', localStorage.getItem("TOKEN"));
+          
+          // ⭐ SAVE FULL EMPLOYEE DATA (VERY IMPORTANT)
+          localStorage.setItem("LOGGED_IN_USER", JSON.stringify(res.employee));
 
-//     // convert base64 → file (IMPORTANT)
-//     if (p.image) {
-//       const file = this.base64ToFile(p.image, "project.png");
-//       fd.append("image", file);
-//     }
+          // ⭐ CREATE PORTFOLIO AFTER REGISTRATION IF PROJECTS/SKILLS EXIST
+          if (this.formData.portfolio.projects.length > 0 || this.formData.portfolio.skills.length > 0) {
+            const employeeId = res.employee?.employeeId;
+            
+            console.log('🆔 Employee ID from login:', employeeId);
+            
+            if (!employeeId) {
+              console.error('❌ Employee ID missing in login response');
+              console.error('📥 Full login response:', res);
+              return;
+            }
+            
+            this.createPortfolioAfterRegistration(employeeId);
+          } else {
+            this.router.navigate(['/login']);
+          }
+        });
+    },
 
-//    this.projectService.addProject(employeeId, fd).subscribe({
-//   next: (res) => {
-//     console.log("PROJECT SAVED:", res);
-//   },
-//   error: (err) => {
-//     console.error("PROJECT ERROR:", err);
-//   }
-// });
-
-//   });
-
-
-
-  this.router.navigate(['/portfolio']);
-},
     error: (err) => {
-
-  console.log("BACKEND ERROR:", err);
-
-  this.errorMessage =
-    err?.error?.message ||
-    "Registration failed. Check backend validation.";
+      console.log("❌ Registration error:", err);
+      console.log("DESIGNATION =", this.formData.designation);
+  console.log("FULL ERROR:", err);
+  console.log("BACKEND MESSAGE:", err.error);
+  this.errorMessage = JSON.stringify(err.error);
 }
-
   });
 }
+
+  // ⭐ CREATE PORTFOLIO AFTER REGISTRATION
+  createPortfolioAfterRegistration(employeeId: number) {
+    console.log('🎯 Projects from registration:', this.formData.portfolio.projects);
+    
+    // NOTE: Portfolio already created in registration payload
+    // This method now only handles individual project creation
+    console.log('� Skipping portfolio creation (already done in registration)');
+    console.log('🔄 Creating only individual projects...');
+    
+    // Create projects individually (like profile component does)
+    this.createProjectsIndividually(employeeId);
+  }
+
+  // ⭐ CREATE PROJECTS INDIVIDUALLY (LIKE PROFILE COMPONENT)
+  createProjectsIndividually(employeeId: number) {
+    console.log('🔥 FINAL employeeId used:', employeeId);
+    
+    const projects = this.formData.portfolio.projects || [];
+    
+    if (projects.length === 0) {
+      console.log('📝 No projects to create, navigating to login');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    console.log('🎯 Creating', projects.length, 'projects individually');
+    
+    // Reset counters
+    this.createdProjectsCount = 0;
+    this.totalProjectsCount = projects.length;
+    
+    projects.forEach((project, index) => {
+      console.log(`📤 Creating project ${index + 1}/${projects.length}:`, project.projectName);
+      
+      // Handle image conversion
+      if (project.image && project.image.startsWith('data:image')) {
+        // Convert base64 to File
+        fetch(project.image)
+          .then(res => res.blob())
+          .then(blob => {
+            const file = new File([blob], 'project-image.jpg', { type: 'image/jpeg' });
+            this.callProjectsService(employeeId, project, file);
+          })
+          .catch(err => {
+            console.error('Error converting image:', err);
+            this.callProjectsService(employeeId, project);
+          });
+      } else {
+        this.callProjectsService(employeeId, project);
+      }
+    });
+  }
+
+  // ⭐ CALL PROJECTS SERVICE (LIKE PROFILE COMPONENT)
+  callProjectsService(employeeId: number, project: any, file?: File) {
+    console.log('🎯 Calling ProjectsService.addProject with:', {
+      employeeId,
+      title: project.projectName,
+      tech: project.techStack,
+      file: file,
+      summary: project.summary
+    });
+    
+    this.projectsService.addProject(
+      employeeId,
+      project.projectName || '',
+      project.techStack || '',
+      file,
+      project.summary || ''
+    ).subscribe({
+      next: (response: any) => {
+        console.log('✅ Project created successfully:', response);
+        console.log('📥 Backend response details:', JSON.stringify(response, null, 2));
+        this.checkAllProjectsCreated();
+      },
+      error: (err: any) => {
+        console.error('❌ Failed to create project:', err);
+        console.error('📥 Error details:', JSON.stringify(err, null, 2));
+        console.error('📥 Error status:', err.status);
+        console.error('📥 Error message:', err.error);
+        this.checkAllProjectsCreated();
+      }
+    });
+  }
+
+  // ⭐ CHECK IF ALL PROJECTS ARE CREATED
+  private createdProjectsCount = 0;
+  private totalProjectsCount = 0;
+
+  checkAllProjectsCreated() {
+    this.createdProjectsCount++;
+    console.log(`📊 Progress: ${this.createdProjectsCount}/${this.totalProjectsCount} projects created`);
+    
+    if (this.createdProjectsCount >= this.totalProjectsCount) {
+      console.log('✅ All projects created, navigating to portfolio');
+      console.log('🔄 Waiting 2 seconds before navigation to allow backend processing...');
+      
+      // Wait a moment for backend to process
+      setTimeout(() => {
+        console.log('🚀 Navigating to login page...');
+        this.router.navigate(['/login']);
+      }, 2000);
+    }
+  }
+
   base64ToFile(base64: string, filename: string): File {
   const arr = base64.split(',');
   const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/png';
@@ -342,4 +428,12 @@ formData = {
   goToLogin() {
     this.router.navigate(['/login']);
   }
+
+  ngOnInit() {
+    document.body.classList.add('admin-bg');
+  }
+  
+    ngOnDestroy() {
+          document.body.classList.remove('admin-bg');
+    }
 }

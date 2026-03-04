@@ -1,7 +1,15 @@
 <div class="flex min-h-screen bg-[#002487] text-white">
 
+  <!-- Mobile Menu Toggle -->
+  <button (click)="toggleMobileMenu()" class="lg:hidden fixed top-4 left-4 z-50 bg-purple-600 text-white p-2 rounded-lg">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+    </svg>
+  </button>
+
   <!-- Sidebar -->
-<aside class="fixed w-64 bg-[#002487] px-4 py-3 flex flex-col justify-between h-screen shadow-2xl shadow-white/20 rounded-2xl">
+<aside [ngClass]="mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'" 
+       class="fixed w-64 bg-[#002487] px-4 py-3 flex flex-col justify-between h-screen shadow-2xl shadow-white/20 rounded-2xl transition-transform duration-300 z-40">
 
     <!-- Top Section -->
     <div>
@@ -95,82 +103,82 @@
   </aside>
 
   <!-- Main Content -->
-  <main class=" ml-64 flex-1 p-10">
-      <div class=" flex justify-between items-center mb-8">
+  <main class="lg:ml-64 flex-1 p-4 lg:p-10 pt-16 lg:pt-10">
+      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 lg:mb-8 gap-4">
     <div>
-      <p class="text-white"><span>Pages</span> / <span *ngIf="activePage === 'dashboard'">Dashboard</span><span *ngIf="activePage === 'table'">Employee</span><span *ngIf="activePage === 'billing'">Billing</span><span *ngIf="activePage === 'profile'">Profile</span></p>
-      <h1 class="text-2xl font-bold"  *ngIf="activePage === 'dashboard'">Dashboard</h1>
-      <h1 class="text-2xl font-bold"  *ngIf="activePage === 'table'">Employee</h1>
-      <h1 class="text-2xl font-bold"  *ngIf="activePage === 'billing'">Billing</h1>
-      <h1 class="text-2xl font-bold"  *ngIf="activePage === 'profile'">Profile</h1>
+      <p class="text-white text-sm lg:text-base"><span>Pages</span> / <span *ngIf="activePage === 'dashboard'">Dashboard</span><span *ngIf="activePage === 'table'">Employee</span><span *ngIf="activePage === 'billing'">Billing</span><span *ngIf="activePage === 'profile'">Profile</span></p>
+      <h1 class="text-xl lg:text-2xl font-bold"  *ngIf="activePage === 'dashboard'">Dashboard</h1>
+      <h1 class="text-xl lg:text-2xl font-bold"  *ngIf="activePage === 'table'">Employee</h1>
+      <h1 class="text-xl lg:text-2xl font-bold"  *ngIf="activePage === 'billing'">Billing</h1>
+      <h1 class="text-xl lg:text-2xl font-bold"  *ngIf="activePage === 'profile'">Profile</h1>
     </div>
 
-    <div class="flex gap-4 items-center">
+    <div class="flex flex-col sm:flex-row gap-2 lg:gap-4 items-stretch sm:items-center w-full lg:w-auto">
       <input type="text" placeholder="Type here..."
-             class="border rounded-xl px-4 py-2 w-64" />
-      <button class="border border-orange-500 text-orange-500 px-5 py-2 rounded-xl font-semibold">
+             class="border rounded-xl px-3 lg:px-4 py-2 w-full sm:w-64" />
+      <button class="border border-orange-500 text-orange-500 px-4 lg:px-5 py-2 rounded-xl font-semibold whitespace-nowrap">
         Online Builder
       </button>
     </div>
   </div>
     <div class="dashboard" *ngIf="activePage === 'dashboard'">
-        <div class="p-8 min-h-screen">
+        <div class="p-4 lg:p-8 min-h-screen">
 
   <!-- Header -->
 
 
   <!-- Cards + Reviews -->
-  <div class="grid grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
 
     <!-- Left Cards (2x2 Grid) -->
-    <div class="col-span-2 grid grid-cols-2 gap-6">
+    <div class="col-span-1 lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
 
       <!-- Card 1: Users Active -->
-      <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl p-3 shadow-lg hover:shadow-xl transition">
+      <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl p-3 lg:p-4 shadow-lg hover:shadow-xl transition">
         <div class="flex justify-between items-start mb-4">
-          <div class="bg-white text-orange-500 w-12 h-12 rounded-full flex items-center justify-center text-lg">👤</div>
-          <span class="text-sm font-semibold text-orange-100">+55%</span>
+          <div class="bg-white text-orange-500 w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center text-sm lg:text-lg">👤</div>
+          <span class="text-xs lg:text-sm font-semibold text-orange-100">+55%</span>
         </div>
-        <h3 class="text-white text-sm mb-2">Users Active</h3>
-        <h2 class="text-4xl font-bold">{{ userCount }}</h2>
+        <h3 class="text-white text-xs lg:text-sm mb-2">Users Active</h3>
+        <h2 class="text-2xl lg:text-4xl font-bold">{{ userCount }}</h2>
       </div>
 
       <!-- Card 2: Click Events -->
-      <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl p-3 shadow-lg hover:shadow-xl transition">
+      <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl p-3 lg:p-4 shadow-lg hover:shadow-xl transition">
         <div class="flex justify-between items-start mb-4">
-          <div class="bg-white text-blue-500 w-12 h-12 rounded-full flex items-center justify-center text-lg">👍</div>
-          <span class="text-sm font-semibold text-blue-100">+124%</span>
+          <div class="bg-white text-blue-500 w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center text-sm lg:text-lg">👍</div>
+          <span class="text-xs lg:text-sm font-semibold text-blue-100">+124%</span>
         </div>
-        <h3 class="text-white text-sm mb-2">Click Events</h3>
-        <h2 class="text-4xl font-bold">357</h2>
+        <h3 class="text-white text-xs lg:text-sm mb-2">Click Events</h3>
+        <h2 class="text-2xl lg:text-4xl font-bold">357</h2>
       </div>
 
       <!-- Card 3: Purchases -->
-      <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-2xl p-3 shadow-lg hover:shadow-xl transition">
+      <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-2xl p-3 lg:p-4 shadow-lg hover:shadow-xl transition">
         <div class="flex justify-between items-start mb-4">
-          <div class="bg-white text-green-500 w-12 h-12 rounded-full flex items-center justify-center text-lg">🛒</div>
-          <span class="text-sm font-semibold text-green-100">+15%</span>
+          <div class="bg-white text-green-500 w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center text-sm lg:text-lg">🛒</div>
+          <span class="text-xs lg:text-sm font-semibold text-green-100">+15%</span>
         </div>
-        <h3 class="text-white text-sm mb-2">Purchases</h3>
-        <h2 class="text-4xl font-bold">2,300</h2>
+        <h3 class="text-white text-xs lg:text-sm mb-2">Purchases</h3>
+        <h2 class="text-2xl lg:text-4xl font-bold">2,300</h2>
       </div>
 
       <!-- Card 4: Likes -->
-      <div class="bg-gradient-to-br from-red-500 to-red-600 text-white rounded-2xl p-3 shadow-lg hover:shadow-xl transition">
+      <div class="bg-gradient-to-br from-red-500 to-red-600 text-white rounded-2xl p-3 lg:p-4 shadow-lg hover:shadow-xl transition">
         <div class="flex justify-between items-start mb-4">
-          <div class="bg-white text-red-500 w-12 h-12 rounded-full flex items-center justify-center text-lg">❤️</div>
-          <span class="text-sm font-semibold text-red-100">+90%</span>
+          <div class="bg-white text-red-500 w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center text-sm lg:text-lg">❤️</div>
+          <span class="text-xs lg:text-sm font-semibold text-red-100">+90%</span>
         </div>
-        <h3 class="text-white text-sm mb-2">Likes</h3>
-        <h2 class="text-4xl font-bold">940</h2>
+        <h3 class="text-white text-xs lg:text-sm mb-2">Likes</h3>
+        <h2 class="text-2xl lg:text-4xl font-bold">940</h2>
       </div>
 
     </div>
 
     <!-- Reviews Panel -->
-    <div class="col-span-1 bg-blue rounded-2xl p-6 shadow-2xl shadow-white/20 ">
+    <div class="col-span-1 lg:col-span-1 bg-blue rounded-2xl p-4 lg:p-6 shadow-2xl shadow-white/20 ">
 
-      <h2 class="text-xl font-bold text-white mb-6">Reviews</h2>
+      <h2 class="text-lg lg:text-xl font-bold text-white mb-4 lg:mb-6">Reviews</h2>
 
       <!-- Positive Reviews -->
       <div class="mb-5">
@@ -508,7 +516,7 @@
 
   <select
     [(ngModel)]="employeeTypeFilter"
-    class="mb-4 p-2 rounded text-black border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+    class="mb-4 p-2 rounded text-black border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto">
 
     <option value="">All Employees</option>
     <option value="Full Time">Full Time</option>
@@ -518,7 +526,7 @@
 
   <select
     [(ngModel)]="designationFilter"
-    class="mb-4 p-2 rounded text-black ml-2 border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+    class="mb-4 p-2 rounded text-black ml-2 border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto">
 
     <option value="">All Designations</option>
     <option value="fullstack">fullstack</option>
@@ -527,16 +535,16 @@
   </select>
 
 </div>
-<div class="bg-blue rounded-2xl p-6 shadow-2xl shadow-white/20 w-230">
+<div class="bg-blue rounded-2xl p-4 lg:p-6 shadow-2xl shadow-white/20 overflow-x-auto">
   
 
-  <h2 class="text-xl font-bold mb-4">Employee table</h2>
-  <div class="overflow-auto h-[calc(100vh-260px)] w-[880px]">
+  <h2 class="text-lg lg:text-xl font-bold mb-4">Employee table</h2>
+  <div class="overflow-auto h-[calc(100vh-260px)] min-w-80 sm:min-w-160 lg:min-w-220">
 
 
 
     <!-- Table Header -->
-      <div class="grid grid-cols-15 bg-blue-900 text-white text-sm border-b  pb-2 p-2 font-semibold min-w-[1750px] sticky top-0 bg-blue">
+      <div class="grid grid-cols-15 bg-blue-900 text-white text-xs sm:text-sm border-b pb-2 p-2 font-semibold min-w-96 sm:min-w-437.5 sticky top-0 bg-blue">
         <span class="pl-2">Sr.No</span>
       <span class="pr-10">FirstName</span>
       <span>LastName</span>
@@ -598,19 +606,20 @@
       
       <div class="flex gap-2">
         <button
-          (click)="updatePortfolioData(employee.id, employee)"
+          (click)="updatePortfolioData(employee.employeeId, employee)"
           class="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-600">
           Update
         </button>
         <button
-          (click)="deletePortfolio(employee.employeeId)"
-          class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600">
+          [disabled]="!employee.portfolio || !employee.portfolio?.id"
+          (click)="deletePortfolio(employee.portfolio?.id)"
+          class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed">
           Delete
         </button>
       </div>
       
         <!-- <button
-    (click)="deletePortfolio(employee.employeeId)"
+    (click)="deletePortfolio(employee.id)"
     class="bg-red-500 text-white px-3 py-1 rounded-lg">
     Delete Portfolio
   </button> -->
@@ -1258,7 +1267,239 @@
   </div>
 </div>
 
-
+<!-- Update Portfolio Modal -->
+<div *ngIf="showUpdateModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="bg-white p-6 rounded-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-xl">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">Update Employee & Portfolio</h2>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Column 1: Personal Information -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Personal Information</h3>
+        
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-600">First Name</label>
+            <input [(ngModel)]="updateForm.firstName" 
+                   class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-sm"
+                   placeholder="First Name">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-600">Middle Name</label>
+            <input [(ngModel)]="updateForm.middleName" 
+                   class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-sm"
+                   placeholder="Middle Name">
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium mb-1 text-gray-600">Last Name</label>
+          <input [(ngModel)]="updateForm.lastName" 
+                 class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-sm"
+                 placeholder="Last Name">
+        </div>
+        
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-600">Email</label>
+            <input [(ngModel)]="updateForm.email" 
+                   type="email"
+                   class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-sm"
+                   placeholder="Email">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-600">Phone</label>
+            <input [(ngModel)]="updateForm.phone" 
+                   class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-sm"
+                   placeholder="Phone">
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium mb-1 text-gray-600">Portfolio Summary</label>
+          <textarea [(ngModel)]="updateForm.summary" 
+                    rows="3"
+                    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-sm"
+                    placeholder="Write a short summary about yourself..."></textarea>
+        </div>
+      </div>
+      
+      <!-- Column 2: Professional Information -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Professional Information</h3>
+        
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-600">Designation</label>
+            <input [(ngModel)]="updateForm.designation" 
+                   class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-sm"
+                   placeholder="Designation">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-600">Employee Type</label>
+            <select [(ngModel)]="updateForm.employeeType" 
+                    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-sm">
+              <option value="">Select Type</option>
+              <option value="Full Time">Full Time</option>
+              <option value="Intern">Intern</option>
+              <option value="Contract">Contract</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-600">PAN No</label>
+            <input [(ngModel)]="updateForm.panNO" 
+                   class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-sm"
+                   placeholder="PAN Number">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-600">Aadhar No</label>
+            <input [(ngModel)]="updateForm.aadharNo" 
+                   class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-sm"
+                   placeholder="Aadhar Number">
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-600">Joining Date</label>
+            <input [(ngModel)]="updateForm.joiningDate" 
+                   type="date"
+                   class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-sm">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-600">Exit Date</label>
+            <input [(ngModel)]="updateForm.exitDate" 
+                   type="date"
+                   class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-sm">
+          </div>
+        </div>
+        
+        <!-- Address Section -->
+        <div class="space-y-2">
+          <h4 class="text-md font-semibold text-gray-700">Address</h4>
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-600">Street</label>
+            <input [(ngModel)]="updateForm.address.street" 
+                   class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-sm"
+                   placeholder="Street Address">
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-sm font-medium mb-1 text-gray-600">City</label>
+              <input [(ngModel)]="updateForm.address.city" 
+                     class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-sm"
+                     placeholder="City">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1 text-gray-600">State</label>
+              <input [(ngModel)]="updateForm.address.state" 
+                     class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-sm"
+                     placeholder="State">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1 text-gray-600">Pin Code</label>
+              <input [(ngModel)]="updateForm.address.pinCode" 
+                     class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-sm"
+                     placeholder="Pin Code">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-600">Country</label>
+            <input [(ngModel)]="updateForm.address.country" 
+                   class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-sm"
+                   placeholder="Country">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Column 3: Portfolio Data -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Portfolio Data</h3>
+        
+        <!-- Skills Section -->
+        <div>
+          <h4 class="text-md font-semibold text-gray-700 mb-2">Skills</h4>
+          <div class="flex gap-2 mb-3">
+            <input [(ngModel)]="newSkill" 
+                   (keyup.enter)="addSkill()"
+                   class="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-sm"
+                   placeholder="Enter skill">
+            <button (click)="addSkill()" 
+                    class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+              Add
+            </button>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span *ngFor="let skill of updateForm.skills" 
+                  class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs flex items-center gap-1">
+              {{ skill }}
+              <button (click)="removeSkill(skill)" 
+                      class="text-blue-600 hover:text-blue-800 font-bold text-xs">
+                ×
+              </button>
+            </span>
+          </div>
+        </div>
+        
+        <!-- Projects Section -->
+        <div>
+          <h4 class="text-md font-semibold text-gray-700 mb-2">Projects</h4>
+          <div class="border border-gray-300 rounded p-2 mb-2">
+            <div class="grid grid-cols-1 gap-2 mb-2">
+              <input [(ngModel)]="newProject.projectName" 
+                     class="p-1 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-xs"
+                     placeholder="Project Name">
+              <input [(ngModel)]="newProject.techStack" 
+                     class="p-1 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-xs"
+                     placeholder="Tech Stack">
+              <textarea [(ngModel)]="newProject.description" 
+                        rows="2"
+                        class="w-full p-1 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-xs"
+                        placeholder="Description"></textarea>
+            </div>
+            <button (click)="addProject()" 
+                    class="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600 w-full">
+              Add Project
+            </button>
+          </div>
+          
+          <div class="space-y-1 max-h-32 overflow-y-auto">
+            <div *ngFor="let project of updateForm.projects; let i = index" 
+                 class="border border-gray-200 rounded p-2 bg-gray-50">
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <h5 class="font-semibold text-gray-800 text-xs">{{ project.projectName }}</h5>
+                  <p class="text-xs text-gray-600">{{ project.techStack }}</p>
+                  <p class="text-xs text-gray-500">{{ project.description }}</p>
+                </div>
+                <button (click)="removeProject(i)" 
+                        class="text-red-500 hover:text-red-700 font-bold text-xs">
+                  ×
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="flex gap-3 mt-6 pt-4 border-t">
+      <button (click)="saveUpdatedPortfolio()" 
+              class="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Save All Changes
+      </button>
+      <button (click)="closeUpdateModal()" 
+              class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
 
     </div>
   </main>
