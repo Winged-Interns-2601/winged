@@ -42,4 +42,8 @@ export class EmployeeService {
   getUserCount() {
     return this.http.get<number>(`${this.API}/count`);
   }
+
+  updateEmployee(id: number, employee: any) {
+    return this.http.patch(`${this.API}/update-user/${id}`, employee);
+  }
 }

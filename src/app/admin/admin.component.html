@@ -24,7 +24,7 @@
     <li>
       <a (click)="activePage='dashboard'"
          [ngClass]="activePage==='dashboard'
-           ? 'bg-white/10 text-white'
+           ? 'bg-[white] text-[#002487]'
            : 'text-white hover:bg-white/10 '"
          class="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer underline:none">
         🏠 <span>Dashboard</span>
@@ -35,9 +35,9 @@
     <li>
       <a (click)="activePage='table'"
          [ngClass]="activePage==='table'
-           ? 'bg-white/10 text-white'
+           ? 'bg-[white] text-[#002487]'
            : 'text-white hover:bg-white/10 '"
-         class="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer">
+         class="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer ">
         👥 <span>Employee</span>
       </a>
     </li>
@@ -72,8 +72,16 @@
 </nav>
 
     </div>
+
 <!-- Bottom Section -->
-<div class="space-y-2">
+<div class="flex flex-col text-center mt-auto mb-5">
+  <ul class="space-y-4 text-white text-sm w-full">
+    <li class="cursor-pointer bg-[#002487] text-white shadow-2xl shadow-white/30">settings</li>
+    <li class="cursor-pointer text-red-600 bg-[#002487] shadow-2xl shadow-white/20" (click)="logout()">
+      Logout
+    </li>
+  </ul>
+</div>
 
 
 
@@ -96,7 +104,7 @@
     Upgrade to pro
   </button> -->
 
-</div>
+<!-- </div> -->
 
 
 
@@ -516,7 +524,7 @@
 
   <select
     [(ngModel)]="employeeTypeFilter"
-    class="mb-4 p-2 rounded text-black border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto">
+    class="mb-4 p-2 rounded bg-[#002487] text-white shadow-2xl shadow-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto">
 
     <option value="">All Employees</option>
     <option value="Full Time">Full Time</option>
@@ -526,7 +534,7 @@
 
   <select
     [(ngModel)]="designationFilter"
-    class="mb-4 p-2 rounded text-black ml-2 border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto">
+    class="mb-4 ml-2 p-2 rounded bg-[#002487] text-white shadow-2xl shadow-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto">
 
     <option value="">All Designations</option>
     <option value="fullstack">fullstack</option>
@@ -544,7 +552,7 @@
 
 
     <!-- Table Header -->
-      <div class="grid grid-cols-15 bg-blue-900 text-white text-xs sm:text-sm border-b pb-2 p-2 font-semibold min-w-96 sm:min-w-437.5 sticky top-0 bg-blue">
+      <div class="grid grid-cols-16 bg-blue-900 text-white text-xs sm:text-sm border-b pb-2 p-2 font-semibold min-w-96 sm:min-w-437.5 sticky top-0 bg-blue">
         <span class="pl-2">Sr.No</span>
       <span class="pr-10">FirstName</span>
       <span>LastName</span>
@@ -606,10 +614,15 @@
       
       <div class="flex gap-2">
         <button
-          (click)="updatePortfolioData(employee.employeeId, employee)"
-          class="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-600">
-          Update
-        </button>
+        (click)="openEditModal(employee)"
+        class="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition">
+Edit
+</button>
+<!-- Debug Button -->
+<!-- <button (click)="showEditModal = !showEditModal" 
+        class="bg-red-500 text-white px-2 py-1 rounded-lg text-sm">
+  DEBUG: Toggle Edit Modal ({{ showEditModal }})
+</button> -->
         <button
           [disabled]="!employee.portfolio || !employee.portfolio?.id"
           (click)="deletePortfolio(employee.portfolio?.id)"
@@ -635,7 +648,7 @@
   </div>
 
 
-<div class="bg-blue rounded-2xl p-6 shadow-2xl mt-10 shadow-white/20 ">
+<!-- <div class="bg-blue rounded-2xl p-6 shadow-2xl mt-10 shadow-white/20 ">
 
   <h2 class="text-xl font-bold mb-4">Projects table</h2>
 
@@ -741,7 +754,7 @@
     </div>
   </div>
 
-</div>
+</div> -->
 
 
     </div>
@@ -1268,11 +1281,11 @@
 </div>
 
 <!-- Update Portfolio Modal -->
-<div *ngIf="showUpdateModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+<div *ngIf="showEditModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
   <div class="bg-white p-6 rounded-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-xl">
     <h2 class="text-2xl font-bold mb-6 text-gray-800">Update Employee & Portfolio</h2>
     
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       
       <!-- Column 1: Personal Information -->
       <div class="space-y-4">
@@ -1416,84 +1429,15 @@
         </div>
       </div>
       
-      <!-- Column 3: Portfolio Data -->
-      <div class="space-y-4">
-        <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Portfolio Data</h3>
-        
-        <!-- Skills Section -->
-        <div>
-          <h4 class="text-md font-semibold text-gray-700 mb-2">Skills</h4>
-          <div class="flex gap-2 mb-3">
-            <input [(ngModel)]="newSkill" 
-                   (keyup.enter)="addSkill()"
-                   class="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-sm"
-                   placeholder="Enter skill">
-            <button (click)="addSkill()" 
-                    class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
-              Add
-            </button>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            <span *ngFor="let skill of updateForm.skills" 
-                  class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs flex items-center gap-1">
-              {{ skill }}
-              <button (click)="removeSkill(skill)" 
-                      class="text-blue-600 hover:text-blue-800 font-bold text-xs">
-                ×
-              </button>
-            </span>
-          </div>
-        </div>
-        
-        <!-- Projects Section -->
-        <div>
-          <h4 class="text-md font-semibold text-gray-700 mb-2">Projects</h4>
-          <div class="border border-gray-300 rounded p-2 mb-2">
-            <div class="grid grid-cols-1 gap-2 mb-2">
-              <input [(ngModel)]="newProject.projectName" 
-                     class="p-1 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-xs"
-                     placeholder="Project Name">
-              <input [(ngModel)]="newProject.techStack" 
-                     class="p-1 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-xs"
-                     placeholder="Tech Stack">
-              <textarea [(ngModel)]="newProject.description" 
-                        rows="2"
-                        class="w-full p-1 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-black text-xs"
-                        placeholder="Description"></textarea>
-            </div>
-            <button (click)="addProject()" 
-                    class="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600 w-full">
-              Add Project
-            </button>
-          </div>
-          
-          <div class="space-y-1 max-h-32 overflow-y-auto">
-            <div *ngFor="let project of updateForm.projects; let i = index" 
-                 class="border border-gray-200 rounded p-2 bg-gray-50">
-              <div class="flex justify-between items-start">
-                <div class="flex-1">
-                  <h5 class="font-semibold text-gray-800 text-xs">{{ project.projectName }}</h5>
-                  <p class="text-xs text-gray-600">{{ project.techStack }}</p>
-                  <p class="text-xs text-gray-500">{{ project.description }}</p>
-                </div>
-                <button (click)="removeProject(i)" 
-                        class="text-red-500 hover:text-red-700 font-bold text-xs">
-                  ×
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
-    </div>
     
     <!-- Action Buttons -->
     <div class="flex gap-3 mt-6 pt-4 border-t">
-      <button (click)="saveUpdatedPortfolio()" 
+      <button (click)="saveEditedEmployee()" 
               class="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
         Save All Changes
       </button>
-      <button (click)="closeUpdateModal()" 
+      <button (click)="closeEditModal()" 
               class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400">
         Cancel
       </button>
@@ -1501,7 +1445,99 @@
   </div>
 </div>
 
-    </div>
-  </main>
-
+<!-- Test Buttons -->
+<div class="fixed top-4 right-4 z-[9999] flex gap-2">
+  <button (click)="testModalVisibility()" 
+          class="bg-green-500 text-white px-3 py-1 rounded-lg text-sm">
+    Test Modal Visibility
+  </button>
+  <button (click)="testFormPopulation()" 
+          class="bg-yellow-500 text-white px-3 py-1 rounded-lg text-sm">
+    Test Form Population
+  </button>
+  <button (click)="showEditModal = !showEditModal" 
+          class="bg-red-500 text-white px-4 py-2 rounded-lg z-[9999]">
+    DEBUG: Toggle Edit Modal ({{ showEditModal }})
+  </button>
 </div>
+
+<!-- Modal Status Indicator -->
+<div *ngIf="showEditModal" class="fixed top-20 right-4 bg-green-600 text-white px-4 py-2 rounded-lg z-50" style="z-index: 9998;">
+  MODAL IS VISIBLE - showEditModal: {{ showEditModal }}
+</div>
+
+<!-- Edit Employee Modal -->
+
+<!-- Edit Employee Modal (Refactored) -->
+<div *ngIf="showEditModal" class="fixed inset-0 z-[9999] flex items-center justify-center">
+  <!-- Backdrop -->
+  <div class="absolute inset-0 bg-black bg-opacity-60" (click)="closeEditModal()"></div>
+  <!-- Modal Content -->
+  <div class="relative bg-white rounded-2xl p-8 shadow-2xl border border-gray-200 w-full max-w-2xl z-10 animate-fadeIn">
+    <button (click)="closeEditModal()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold">&times;</button>
+    <h2 class="text-2xl font-bold mb-6 text-gray-800 text-center">Edit Employee</h2>
+    <form (ngSubmit)="saveEditedEmployee()" autocomplete="off">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold mb-1">First Name</label>
+          <input [(ngModel)]="updateForm.firstName" name="firstName" type="text" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="First Name" required>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Last Name</label>
+          <input [(ngModel)]="updateForm.lastName" name="lastName" type="text" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Last Name" required>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Employee Type</label>
+          <select [(ngModel)]="updateForm.employeeType" name="employeeType" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" required>
+            <option value="">Select</option>
+            <option value="Full Time">Full Time</option>
+            <option value="Intern">Intern</option>
+            <option value="Contract">Contract</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Designation</label>
+          <input [(ngModel)]="updateForm.designation" name="designation" type="text" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Designation" required>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Email</label>
+          <input [(ngModel)]="updateForm.email" name="email" type="email" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Email" required>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Phone</label>
+          <input [(ngModel)]="updateForm.phone" name="phone" type="text" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Phone">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Address</label>
+          <input [(ngModel)]="updateForm.address" name="address" type="text" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Address">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Joining Date</label>
+          <input [(ngModel)]="updateForm.joiningDate" name="joiningDate" type="date" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Exit Date</label>
+          <input [(ngModel)]="updateForm.exitDate" name="exitDate" type="date" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Aadhar Number</label>
+          <input [(ngModel)]="updateForm.aadharNo" name="aadharNo" type="text" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Aadhar Number">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">PAN Number</label>
+          <input [(ngModel)]="updateForm.panNO" name="panNO" type="text" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="PAN Number">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Employee Id</label>
+          <input [(ngModel)]="updateForm.employeeId" name="employeeId" type="text" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Employee Id" readonly>
+        </div>
+      </div>
+      <div class="flex gap-3 pt-8">
+        <button type="submit" class="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:scale-105 hover:shadow-lg transition font-semibold">Save</button>
+        <button type="button" (click)="closeEditModal()" class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition font-semibold">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+  </div>

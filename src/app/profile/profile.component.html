@@ -1,4 +1,4 @@
-<div class="relative min-h-screen bg-[#002487]">
+<div class="relative min-h-screen bg-gradient-to-br from-[#001a66] via-[#002487] to-[#0033cc]">
 
   <!-- Mobile Menu Toggle -->
   <button (click)="toggleMobileMenu()" class="lg:hidden fixed top-4 left-4 z-50 bg-purple-600 text-white p-2 rounded-lg">
@@ -9,16 +9,16 @@
 
   <!-- Sidebar -->
   <aside [ngClass]="mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'" 
-         class="fixed left-0 top-0 h-screen w-64 bg-[#002487] p-5 flex flex-col justify-between shadow-2xl shadow-white/20 rounded-2xl transition-transform duration-300 z-40">
+         class="fixed left-0 top-0 h-screen w-64 bg-white/10 backdrop-blur-xl border-r border-white/20 p-6 flex flex-col justify-between transition-transform duration-300 z-40 shadow-xl">
     <div class="flex flex-col items-center">
       <img src="assets/image5.png" alt="Logo" class="h-12 mb-8 mx-auto">
 
       <button (click)="openNewProjectModal()"
-        class="bg-white text-[#002487] w-full py-2 rounded-lg mb-6 hover:bg-[#002487] hover:text-white">
+        class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white w-full py-2 rounded-lg mb-6 hover:scale-105 hover:shadow-xl transition">
         + Create Project
       </button>
 
-      <button (click)="openSummaryModal()" class="bg-white text-[#002487] w-full py-2 rounded-lg mb-6 hover:bg-[#002487] hover:text-white">+ Add Summary</button>
+      <button (click)="openSummaryModal()" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white w-full py-2 rounded-lg mb-6 hover:scale-105 hover:shadow-xl transition">+ Add Summary</button>
     </div>
 
     <!-- Bottom Navigation -->
@@ -42,36 +42,38 @@
         <p class="text-sm text-gray-300">Project Management</p>
       </div>
 
-      <div class="flex items-center gap-4 relative">
+      <div class="flex items-center gap-4">
         <span class="text-white text-xl">🔔</span>
 
-        <div class="flex items-center gap-2 cursor-pointer" (click)="toggleMenu()">
-          <div class="bg-[#002487] text-white shadow shadow-white/30 h-10 w-10 flex items-center justify-center rounded-full">
-  {{ user?.firstName?.charAt(0)?.toUpperCase() }}{{ user?.lastName?.charAt(0)?.toUpperCase() }}
-</div>
-<div class="flex items-center gap-2 shadow shadow-white/30 p-[7px] rounded-full">
-  <span class="text-white">{{ user?.firstName || 'User' }}</span>
-  <span class="text-white">
-    <i class="fa-solid" [ngClass]="showMenu ? 'fa-angle-up' : 'fa-angle-down'"></i>
-  </span>
-</div>
-          <!-- <span class="text-white">{{ showMenu ? '⬆' : '⬇' }}</span> -->
-        </div>
+        <div class="relative">
+          <div class="flex items-center gap-2 cursor-pointer" (click)="toggleMenu()">
+            <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg h-10 w-10 flex items-center justify-center rounded-full">
+      {{ user?.firstName?.charAt(0)?.toUpperCase() }}{{ user?.lastName?.charAt(0)?.toUpperCase() }}
+    </div>
+    <div class="flex items-center gap-2 shadow shadow-white/30 p-[7px] rounded-full">
+      <span class="text-white">{{ user?.firstName || 'User' }}</span>
+      <span class="text-white">
+        <i class="fa-solid" [ngClass]="showMenu ? 'fa-angle-up' : 'fa-angle-down'"></i>
+      </span>
+    </div>
+            <!-- <span class="text-white">{{ showMenu ? '⬆' : '⬇' }}</span> -->
+          </div>
 
-        <!-- Dropdown -->
-        <div *ngIf="showMenu"
-          class="absolute right-0 top-12 w-40 bg-[#002487]  shadow-lg rounded-lg overflow-hidden shadow-white/30">
-          <button [routerLink]="['/portfolio']" class="w-full text-left px-4 py-2 text-white cursor-pointer">Portfolio</button>
-          <button (click)="logout()"
-            class="w-full text-left px-4 py-2 text-white cursor-pointer">
-            Logout
-          </button>
+          <!-- Dropdown -->
+          <div *ngIf="showMenu"
+               class="absolute right-0 mt-2 w-40 bg-[#002487] z-[9999] shadow-lg rounded-lg overflow-hidden shadow-white/30">
+            <button [routerLink]="['/portfolio']" class="w-full text-left px-4 py-2 text-white cursor-pointer">Portfolio</button>
+            <button (click)="logout()"
+              class="w-full text-left px-4 py-2 text-white cursor-pointer">
+              Logout
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- User Details Card -->
-<div class="bg-[#002487] p-6 rounded-2xl mb-6 mt-5 shadow-lg shadow-white/30"> 
+<div class="bg-white/10 backdrop-blur-xl border border-white/20 p-6 rounded-2xl mb-6 mt-5 shadow-xl hover:shadow-2xl transition"> 
       <div class="flex justify-between items-start gap-6">
         <div class="min-w-0">
           <h3 class="text-2xl text-white font-bold">{{ user?.firstName }} {{ user?.middleName }} {{ user?.lastName }}</h3>
@@ -115,7 +117,7 @@
     </div>
 
     <!-- Portfolio Summary Section -->
-     <div class="bg-[#002487] p-6 rounded-2xl mb-6 shadow-lg shadow-white/30">
+     <div class="bg-white/10 backdrop-blur-xl border border-white/20 p-6 rounded-2xl mb-6 shadow-xl hover:shadow-2xl transition">
 
       <div class="flex justify-between items-center mb-4 ">
         <h3 class="text-xl font-bold text-white">Portfolio Summary</h3>
@@ -133,39 +135,10 @@
           No portfolio summary added yet. Click "Add Summary" to get started.
         </div>
       </ng-template>
-
-      <!-- Add Summary Modal -->
-      <div *ngIf="showSummaryModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-lg w-96 shadow-xl">
-          <h3 class="text-lg font-bold mb-4">Add Portfolio Summary</h3>
-          
-          <div class="mb-4">
-            <label class="block text-sm font-semibold mb-2 text-gray-700">
-              Portfolio Summary
-            </label>
-            <textarea
-              [(ngModel)]="newSummary"
-              name="portfolioSummary"
-              rows="4"
-              placeholder="Write a short summary about yourself..."
-              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500">
-            </textarea>
-          </div>
-
-          <div class="flex gap-3">
-            <button (click)="saveSummary()" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-              Save
-            </button>
-            <button (click)="showSummaryModal = false" class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400">
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
     </div>    
 
     <!-- Skills Section -->
-    <div class="bg-[#002487] p-6 rounded-2xl mb-6 shadow-lg shadow-white/30">
+    <div class="bg-white/10 backdrop-blur-xl border border-white/20 p-6 rounded-2xl mb-6 shadow-xl hover:shadow-2xl transition">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-xl font-bold text-white">Skills</h3>
         <button (click)="addSkill()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 text-sm">
@@ -186,41 +159,19 @@
           No skills added yet. Click "Add Skill" to get started.
         </div>
       </ng-template>
-
-      <!-- Add Skill Modal -->
-      <div *ngIf="showSkillModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-lg w-96 shadow-xl">
-          <h3 class="text-lg font-bold mb-4">Add New Skill</h3>
-          <input 
-            [(ngModel)]="newSkill" 
-            name="skill"
-            type="text" 
-            placeholder="Enter skill name (e.g., Angular, TypeScript)" 
-            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500 mb-4" />
-          
-          <div class="flex gap-3">
-            <button (click)="saveSkill()" class="flex-1 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
-              Add
-            </button>
-            <button (click)="cancelAddSkill()" class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400">
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
 
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      <div class="bg-yellow-400 text-white p-4 rounded-xl text-center">
+      <div class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white p-4 rounded-xl text-center shadow-lg hover:scale-105 transition">
         {{ projects.length }}<br>Projects
       </div>
-      <div class="bg-purple-500 text-white p-4 rounded-xl text-center">
+      <div class="bg-gradient-to-r from-purple-500 to-pink-600 text-white p-4 rounded-xl text-center shadow-lg hover:scale-105 transition">
         100%<br>Editable
       </div>
-      <div class="bg-pink-400 text-white p-4 rounded-xl text-center">
+      <div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-4 rounded-xl text-center shadow-lg hover:scale-105 transition">
         ∞<br>Storage
       </div>
-      <div class="bg-indigo-400 text-white p-4 rounded-xl text-center">
+      <div class="bg-gradient-to-r from-green-400 to-emerald-600 text-white p-4 rounded-xl text-center shadow-lg hover:scale-105 transition">
         ✓<br>Live
       </div>
     </div>
@@ -229,7 +180,7 @@
     <div class="space-y-4">
       <h2 class="text-xl font-semibold text-white">Projects</h2>
       <div *ngFor="let project of projects"
-        class="relative flex flex-col sm:flex-row bg-[#002487] rounded-xl shadow-md shadow-white/30 overflow-hidden ">
+        class="relative flex flex-col sm:flex-row bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl overflow-hidden hover:scale-[1.02] hover:shadow-xl transition duration-300">
 
         <div class="w-full sm:w-40 h-28 sm:h-auto bg-gray-200 flex items-center justify-center overflow-hidden">
 
@@ -256,11 +207,11 @@
 
         <div class="absolute top-2 right-2 flex gap-2">
           <button (click)="startEdit(project)"
-            class="p-2 bg-[#002487] rounded-full shadow-md shadow-white/30 text-white hover:bg-gray-100">
+            class="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full shadow-lg text-white hover:scale-110 transition">
             ✏️
           </button>
           <button (click)="deleteProject(project.id || '')"
-            class="p-2 bg-[#002487] rounded-full shadow-md shadow-white/30 text-white hover:bg-gray-100">
+            class="p-2 bg-gradient-to-r from-red-500 to-pink-600 rounded-full shadow-lg text-white hover:scale-110 transition">
 <span class="text-white">🗑</span>
           </button>
         </div>
@@ -270,78 +221,129 @@
 
     </div>
 
-    <!-- Edit Modal project -->
-<!-- Edit Modal project -->
-<div *ngIf="showProjectModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div class="bg-white p-8 rounded-lg w-96 shadow-xl">
-        <h2 class="text-2xl font-bold mb-6">Edit Project</h2>
-        
-        <div class="space-y-4">
-<div>
-  <label class="block text-sm font-semibold mb-2">Project Title</label>
-  <input 
-    [(ngModel)]="editProject.title" 
-    name="title"
-    type="text" 
-    placeholder="Enter project title" 
-    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500" />
+    
+  </main>
 </div>
 
-<div>
-  <label class="block text-sm font-semibold mb-2">Skills</label>
-  <input 
-    [(ngModel)]="editProject.tech" 
-    name="tech"
-    type="text" 
-    placeholder="e.g., Angular • TypeScript • Tailwind" 
-    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500" />
-</div>
-
-<!-- ⭐ IMAGE INPUT -->
-<div>
-  <label class="block text-sm font-semibold mb-2">Project Image</label>
-
-  <input
-    type="file"
-    accept="image/*"
-    (change)="onEditProjectImageSelected($event)"
-    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500" />
-
-  <!-- Image Preview -->
-  <img
-    *ngIf="editProject.image"
-    [src]="editProject.image"
-    class="mt-2 w-40 h-24 object-cover rounded border">
-</div>
-
-<div class="mb-3">
-  <label class="block text-sm font-semibold mb-1">
-    Project Role / Summary
-  </label>
-
-  <textarea
-    [(ngModel)]="editProject.summary"
-    name="projectSummary"
-    rows="3"
-    placeholder="Describe your role in this project..."
-    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-purple-500">
-  </textarea>
-</div>
-          
-
-          <div class="flex gap-3 pt-4">
-            <button (click)="saveEdit()" class="flex-1 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 font-semibold">
-              Save Project
-            </button>
-            <button (click)="cancelEdit()" class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 font-semibold">
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
+<!-- SUMMARY MODAL -->
+<div *ngIf="showSummaryModal" 
+     class="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
+  <div class="bg-white rounded-2xl p-8 shadow-2xl border border-gray-200 animate-fade-in w-96">
+    <h3 class="text-lg font-bold mb-4">Add Portfolio Summary</h3>
+    
+    <div class="mb-4">
+      <label class="block text-sm font-semibold mb-2 text-gray-700">
+        Portfolio Summary
+      </label>
+      <textarea
+        [(ngModel)]="newSummary"
+        name="portfolioSummary"
+        rows="4"
+        placeholder="Write a short summary about yourself..."
+        class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+      </textarea>
     </div>
 
-  </main>
+    <div class="flex gap-3">
+      <button (click)="saveSummary()" class="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:scale-105 hover:shadow-lg transition">
+        Save
+      </button>
+      <button (click)="showSummaryModal = false" class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SKILL MODAL -->
+<div *ngIf="showSkillModal" 
+     class="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
+  <div class="bg-white rounded-2xl p-8 shadow-2xl border border-gray-200 animate-fade-in w-96">
+    <h3 class="text-lg font-bold mb-4">Add New Skill</h3>
+    <input 
+      [(ngModel)]="newSkill" 
+      name="skill"
+      type="text" 
+      placeholder="Enter skill name (e.g., Angular, TypeScript)" 
+      class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 mb-4" />
+    
+    <div class="flex gap-3">
+      <button (click)="saveSkill()" class="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:scale-105 hover:shadow-lg transition">
+        Add
+      </button>
+      <button (click)="cancelAddSkill()" class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PROJECT MODAL -->
+<div *ngIf="showProjectModal" 
+     class="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
+  <div class="bg-white rounded-2xl p-8 shadow-2xl border border-gray-200 animate-fade-in w-full max-w-2xl">
+    <h2 class="text-2xl font-bold mb-6">Edit Project</h2>
+    
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-semibold mb-2">Project Title</label>
+        <input 
+          [(ngModel)]="editProject.title" 
+          name="title"
+          type="text" 
+          placeholder="Enter project title" 
+          class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold mb-2">Skills</label>
+        <input 
+          [(ngModel)]="editProject.tech" 
+          name="tech"
+          type="text" 
+          placeholder="e.g., Angular • TypeScript • Tailwind" 
+          class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
+      </div>
+
+      <!-- IMAGE INPUT -->
+      <div>
+        <label class="block text-sm font-semibold mb-2">Project Image</label>
+        <input
+          type="file"
+          accept="image/*"
+          (change)="onEditProjectImageSelected($event)"
+          class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
+
+        <!-- Image Preview -->
+        <img
+          *ngIf="editProject.image"
+          [src]="editProject.image"
+          class="mt-2 w-40 h-24 object-cover rounded-lg border">
+      </div>
+
+      <div class="mb-3">
+        <label class="block text-sm font-semibold mb-1">
+          Project Role / Summary
+        </label>
+        <textarea
+          [(ngModel)]="editProject.summary"
+          name="projectSummary"
+          rows="3"
+          placeholder="Describe your role in this project..."
+          class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+        </textarea>
+      </div>
+
+      <div class="flex gap-3 pt-4">
+        <button (click)="saveEdit()" class="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:scale-105 hover:shadow-lg transition font-semibold">
+          Save Project
+        </button>
+        <button (click)="cancelEdit()" class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition font-semibold">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div id="project"></div>
