@@ -1,4 +1,4 @@
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { environment } from '../../environments/environment';
 
@@ -43,7 +43,10 @@ export class EmployeeService {
     return this.http.get<number>(`${this.API}/count`);
   }
 
-  updateEmployee(id: number, employee: any) {
-    return this.http.patch(`${this.API}/update-user/${id}`, employee);
-  }
+ updateEmployee(id: number, data: any) {
+  return this.http.patch(
+    `http://localhost:8080/api/employees/update-user/${id}`,
+    data
+  );
+}
 }

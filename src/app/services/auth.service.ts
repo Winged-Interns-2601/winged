@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { tap } from 'rxjs/operators';
 import { IsLoggedService } from './is-logged.service';
 import { environment } from '../../environments/environment';
 
@@ -88,10 +89,18 @@ export class AuthService {
   return this.http.post(`${this.API}/login`, {
     email: email,
     password: password
-  });
+  }).pipe(
+    tap((response: any) => {
+      // Store the token from login response
+      if (response && response.token) {
+        localStorage.setItem("TOKEN", response.token);
+        console.log('✅ Token stored successfully');
+      } else {
+        console.error('❌ No token in login response:', response);
+      }
+    })
+  );
 }
-// add import
-// import { environment } ... already present
 
 registerBackend(data: any) {
   return this.http.post(`${this.API}/register`, data);
