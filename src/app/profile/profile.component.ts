@@ -77,7 +77,7 @@ const normalized = projects.map((p: any) => ({
   title: p.title || p.projectName || '',
   tech: p.tech || p.techStack || '',
   description: p.description || '',
-  summary: p.summary || p.role || '',
+  summary: p.summary || p.description || p.role || '',
  image: p.image
  ? (p.image.startsWith('data:image')
       ? p.image
