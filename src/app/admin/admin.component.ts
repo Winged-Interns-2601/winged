@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { EmployeeService } from '../services/employee.service';
 import { PortfolioService } from '../services/portfolio.service';
 import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router';
+import { IsLoggedService } from '../services/is-logged.service';
 
 @Component({
   selector: 'app-admin',
@@ -27,15 +29,17 @@ editingEmployee: any = null;
 showEditModal: boolean = false;
 
 editForm: any = {};
-  isLoggedService: any;
-  router: any;
+  // isLoggedService: any;
+  // router: any;
 
     constructor(
-        private auth: AuthService,
-        private employeeService: EmployeeService,
-        private portfolioService: PortfolioService,
-        private cdr: ChangeDetectorRef
-    ) {
+    private auth: AuthService,
+    private employeeService: EmployeeService,
+    private portfolioService: PortfolioService,
+    private cdr: ChangeDetectorRef,
+    private router: Router,                // ✅ ADD
+    private isLoggedService: IsLoggedService // ✅ ADD
+){
         console.log('🚀 AdminComponent initialized!');
     }
 
@@ -171,10 +175,10 @@ editForm: any = {};
     }
 
      logout() {
-    this.auth.logout();
-    this.isLoggedService.logout();
-    this.router.navigate(['/login']);
-  }
+  this.auth.logout();
+  this.isLoggedService.logout();
+  this.router.navigate(['/login']);
+}
 
     openEditModal(employee: any) {
 
