@@ -58,30 +58,48 @@ export interface PortfolioUser {
   providedIn: 'root'
 })
 export class AuthService {
-  loginLocal(username: string, email?: string) {
+  private checkingAuth = false;
 
-  this.currentUser = username;
+  constructor(private http: HttpClient, private isLoggedService: IsLoggedService) {}
 
-  localStorage.setItem("CURRENT_USER", username);
-
-  if (email) {
-    localStorage.setItem("CURRENT_USER_EMAIL", email);
+  isCheckingAuth(): boolean {
+    return this.checkingAuth;
   }
 
-  this.isLoggedService.loginSuccess(
-    localStorage.getItem("TOKEN") || ""
-  );
-}
+  setCheckingAuth(status: boolean): void {
+    this.checkingAuth = status;
+  }
+
+  loginLocal(username: string, email?: string) {
+    this.currentUser = username;
+
+    localStorage.setItem("CURRENT_USER", username);
+
+    if (email) {
+      localStorage.setItem("CURRENT_USER_EMAIL", email);
+    }
+
+    this.isLoggedService.loginSuccess(
+      localStorage.getItem("TOKEN") || ""
+    );
+  }
 
   private API = `${environment.apiUrl}/auth`;
   private currentUser: string | null = null;
   private STORAGE_KEY = 'PORTFOLIO_USERS';
-  
 
-  constructor(
-    private http: HttpClient,
-    private isLoggedService: IsLoggedService
-  ) {}
+  getRole(): string | null {
+    const token = localStorage.getItem('TOKEN');
+    if (!token) return null;
+    
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.role || null;
+    } catch (error) {
+      console.error('Error decoding token for role:', error);
+      return null;
+    }
+  }
 
   /* ================= BACKEND LOGIN ================= */
 
@@ -125,6 +143,7 @@ registerBackend(data: any) {
     }
     
     localStorage.removeItem("TOKEN");
+    localStorage.removeItem("ROLE"); // Clean up any remaining ROLE storage
     localStorage.removeItem("CURRENT_USER");
     localStorage.removeItem("CURRENT_USER_EMAIL");
     localStorage.removeItem("LOGGED_IN_USER");
@@ -135,13 +154,18 @@ registerBackend(data: any) {
 
   getLoggedInUser() {
   const user = localStorage.getItem("LOGGED_IN_USER");
-  const preservedSummary = localStorage.getItem("PRESERVED_SUMMARY");
-  if (user && preservedSummary) {
-    const userData = JSON.parse(user);
-    userData.summary = preservedSummary;
-    return userData;
+
+  if (!user) {
+    console.warn("No user found in localStorage");
+    return null;
   }
-  return user ? JSON.parse(user) : null;
+
+  try {
+    return JSON.parse(user);
+  } catch (e) {
+    console.error("Invalid user data");
+    return null;
+  }
 }
 
   getCurrentUser() {

@@ -110,29 +110,39 @@ export class PortfolioComponent implements OnInit, OnDestroy {
 
   /* ---------------- INIT ---------------- */
 
-  ngOnInit() {
+ngOnInit() {
 
-    document.body.classList.add('admin-bg');
+  document.body.classList.add('admin-bg');
 
-    const backendUser = this.auth.getLoggedInUser();
+  const backendUser = this.auth.getLoggedInUser();
 
-    if (!backendUser?.employeeId) {
-      this.router.navigate(['/login']);
-      return;
-    }
-
-    this.user = backendUser;
-    const employeeId = Number(backendUser.employeeId);
-
-    // ⭐ subscribe FIRST (best practice)
-    this.subscription = this.projectsService.projects$.subscribe(p => {
-      this.projects = p;
-    });
-
-    // load backend data
-    this.loadPortfolio(employeeId);
-    this.loadProjects(employeeId);
+  if (!backendUser) {
+    this.router.navigate(['/login']);
+    return;
   }
+
+  this.user = backendUser;
+
+  const employeeId = Number(backendUser.employeeId);
+
+  // ⭐ handle missing employeeId (IMPORTANT)
+  if (!employeeId || isNaN(employeeId)) {
+    console.warn('Invalid employeeId:', employeeId);
+    return; // stop API calls safely
+  }
+
+  // subscribe FIRST
+  this.subscription = this.projectsService.projects$.subscribe(p => {
+    this.projects = p;
+  });
+
+  // load backend data
+  this.loadPortfolio(employeeId);
+  this.loadProjects(employeeId);
+
+  console.log("Logged user:", backendUser);
+console.log("EmployeeId:", backendUser?.employeeId);
+}
 
   /* ---------------- DESTROY ---------------- */
 

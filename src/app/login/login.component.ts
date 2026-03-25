@@ -17,6 +17,7 @@ export class LoginComponent {
   email: string = '';
   password: string = '';
   errorMessage: string = '';
+  isLoading: boolean = false;
 
   constructor(
     private auth: AuthService,
@@ -25,68 +26,88 @@ export class LoginComponent {
     private employeeService: EmployeeService
   ) {}
 
+  ngOnInit() {
+    // 🔥 Auto-redirect if user is already logged in
+    const token = localStorage.getItem('TOKEN');
+    
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        
+        // ⛔ Check expiry
+        if (payload.exp * 1000 < Date.now()) {
+          console.log('Token expired, clearing storage');
+          localStorage.clear();
+          return;
+        }
+        
+        const role = payload.role;
+        
+        console.log('User already logged in, redirecting to:', role);
+        
+        if (role === 'ADMIN') {
+          this.router.navigateByUrl('/admin', { replaceUrl: true });
+        } 
+        else if (role === 'HR') {
+          this.router.navigateByUrl('/profile', { replaceUrl: true });
+        } 
+        else {
+          this.router.navigateByUrl('/portfolio', { replaceUrl: true });
+        }
 
-
-login() {
-
-  this.errorMessage = '';
-
-  if (!this.email.trim() || !this.password.trim()) {
-    this.errorMessage = "Enter email & password";
-    return;
+      } catch (error) {
+        console.error('Invalid token, clearing storage:', error);
+        localStorage.clear();
+      }
+    }
+    
+    // Set background styling
+    document.body.classList.add('admin-bg');
   }
 
-  const email = this.email.toLowerCase().trim();
+  login() {
+    if (this.isLoading) return; // 🚫 prevent duplicate calls
 
-  this.auth.loginBackend(email, this.password).subscribe({
+    this.isLoading = true;
+    this.errorMessage = '';
 
-    next: (res: any) => {
-
-      console.log("LOGIN SUCCESS", res);
-
-      // ⭐ SAVE TOKEN
-      localStorage.setItem("TOKEN", res.token);
-      console.log('🔑 Token stored in localStorage:', res.token);
-      console.log('🔑 Token verification:', localStorage.getItem("TOKEN"));
-
-      // ⭐ SAVE FULL EMPLOYEE (VERY IMPORTANT)
-      // Get preserved summary from localStorage (saved during logout)
-      const preservedSummary = localStorage.getItem("PRESERVED_SUMMARY") || '';
-      
-      const employeeData = {
-        ...res.employee,
-        summary: preservedSummary // Restore preserved summary
-      };
-      
-      localStorage.setItem(
-        "LOGGED_IN_USER",
-        JSON.stringify(employeeData)
-      );
-      
-      // Clean up preserved summary after using it
-      if (preservedSummary) {
-        localStorage.removeItem("PRESERVED_SUMMARY");
-      }
-      
-      console.log('📝 Restored summary during login:', preservedSummary);
-
-      // ❌ NO SECOND localStorage.setItem() - NO OVERWRITE
-
-      this.isLoggedService.loginSuccess(res.token);
-
-      this.router.navigateByUrl('/portfolio');
-    },
-
-    error: () => {
-      this.errorMessage = "Invalid login";
+    if (!this.email.trim() || !this.password.trim()) {
+      this.errorMessage = "Enter email & password";
+      this.isLoading = false;
+      return;
     }
-  });
-}
 
-ngOnInit() {
-  document.body.classList.add('admin-bg');
-}
-ngOnDestroy() {
-  document.body.classList.remove('admin-bg');
-}
+    const email = this.email.toLowerCase().trim();
+
+    this.auth.loginBackend(email, this.password).subscribe({
+      next: (res: any) => {
+        this.isLoading = false;
+
+        localStorage.setItem("TOKEN", res.token);
+        localStorage.setItem("LOGGED_IN_USER", JSON.stringify(res.employee));
+
+        this.isLoggedService.loginSuccess(res.token);
+
+        const role = res.role;
+
+        if (role === 'ADMIN') {
+          this.router.navigateByUrl('/admin', { replaceUrl: true });
+        } 
+        else if (role === 'HR') {
+          this.router.navigateByUrl('/profile', { replaceUrl: true });
+        } 
+        else {
+          this.router.navigateByUrl('/portfolio', { replaceUrl: true });
+        }
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = "Invalid login";
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    document.body.classList.remove('admin-bg');
+  }
 }

@@ -19,6 +19,12 @@
       </button>
 
       <button (click)="openSummaryModal()" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white w-full py-2 rounded-lg mb-6 hover:scale-105 hover:shadow-xl transition">+ Add Summary</button>
+
+      <button (click)="openAddEmployeeModal()"
+  class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white w-full py-2 rounded-lg mb-6">
+  + Add Employee
+</button>
+
     </div>
 
     <!-- Bottom Navigation -->
@@ -159,6 +165,209 @@
           No skills added yet. Click "Add Skill" to get started.
         </div>
       </ng-template>
+    </div>
+
+    <!-- <div class="table" *ngIf="activePage === 'table'"> -->
+<div class="table scrollbar-hide">
+<div>
+
+  <select
+    [(ngModel)]="employeeTypeFilter"
+    class="mb-4 p-2 rounded bg-[#002487] text-white shadow-2xl shadow-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto">
+
+    <option value="">All Employees</option>
+    <option value="Full Time">Full Time</option>
+    <option value="Intern">Intern</option>
+    <option value="Contract">Contract</option>
+  </select>
+
+  <select
+    [(ngModel)]="designationFilter"
+    class="mb-4 ml-2 p-2 rounded bg-[#002487] text-white shadow-2xl shadow-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto">
+
+    <option value="">All Designations</option>
+    <option value="fullstack">fullstack</option>
+    <option value="frontend">frontend</option>
+    <option value="backend">backend</option>
+  </select>
+
+</div>
+
+<div class="bg-blue  bg-white/10 mb-5 rounded-2xl p-4 lg:p-6 shadow-2xl shadow-white/20 overflow-x-auto w-235 mb-10 scrollbar-hide overflow-auto h-[calc(100vh-260px)] scrollbar-hide">
+  
+
+  <h2 class="text-lg lg:text-xl font-bold mb-4 text-white">Employee table</h2>
+  <div class="overflow-auto h-[calc(100vh-260px)] min-w-80 sm:min-w-160 lg:min-w-220 ">
+
+
+
+    <!-- Table Header -->
+<div class="grid grid-cols-[60px_120px_120px_120px_140px_220px_140px_150px_140px_140px_140px_140px_140px_120px_150px] 
+            bg-blue-900 text-white text-xs sm:text-sm p-2 font-semibold sticky top-0 min-w-[1800px]">
+
+  <span>Sr.No</span>
+  <span>FirstName</span>
+  <span>LastName</span>
+  <span>Type</span>
+  <span>Designation</span>
+  <span>Email</span>
+  <span>Phone</span>
+  <span>Address</span>
+  <span>Joining</span>
+  <span>Exit</span>
+  <span>Aadhar</span>
+  <span>PAN</span>
+  <span>Emp ID</span>
+  <span>Status</span>
+  <span>Actions</span>
+</div>
+
+    <!-- Dynamic Employee Rows -->
+    <div *ngFor="let employee of filteredEmployees; let i = index"
+         class="grid grid-cols-[60px_120px_120px_120px_140px_220px_140px_150px_140px_140px_140px_140px_140px_120px_150px] 
+                items-center py-4 border-b employee-row min-w-[1800px]">
+
+         
+<span class="font-semibold text-white pl-5">
+  {{ i + 1 }}<span class="text-white">.</span>
+</span>
+         <p class="font-semibold text-white pl-3">{{ employee.firstName || '' }}</p>
+         <p class="font-semibold text-white pl-3">{{ employee.lastName || '' }}</p>
+         <p class="font-semibold text-white pl-7">{{ employee.employeeType || 'N/A' }}</p>
+         <p class="font-semibold text-white pl-3">{{ employee.designation || 'N/A' }}</p>
+
+          <p class="text-white text-sm ml-3" *ngIf="employee.email && employee.email.includes('@')">
+            {{ employee.email.split('@')[0] }}<br>
+            &#64;{{ employee.email.split('@')[1] }}
+          </p>
+
+          <p class="text-white text-sm mr-2" *ngIf="!employee.email || !employee.email.includes('@')">
+            N/A
+          </p>
+
+          <p class="text-white pl-4">{{ employee.phone || 'N/A' }}</p>
+
+          <span class="pl-5 text-white">{{ employee.address?.city || 'N/A' }}</span>
+        <span class="text-white pl-2">
+          {{ employee.joiningDate ? (employee.joiningDate | date:'dd/MM/yyyy') : 'N/A' }} 
+        </span>
+
+        <span class="text-white pl-2">
+          {{ employee.exitDate ? (employee.exitDate | date:'dd/MM/yyyy') : 'Present' }}
+        </span>
+
+        <p class="font-semibold text-white">{{ employee.aadharNo || 'N/A' }}</p>
+
+        <p class="font-semibold ml-2 text-white">{{ employee.panNO || 'N/A' }}</p>
+        <p class="ml-3 text-white">{{employee.employeeId}}</p>
+      
+      <span class="text-white text-xs px-3 py-1 rounded-full w-fit bg-green-500 ml-8">
+        {{ employee.status || 'online' }}
+      </span>
+      
+      <div class="flex gap-2">
+        <button
+(click)="openEditModal(employee)"
+class="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition">
+Edit
+</button>
+
+        <button
+          [disabled]="!employee.portfolio || !employee.portfolio?.id"
+          (click)="deletePortfolio(employee.portfolio?.id)"
+          class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed">
+          Delete
+        </button>
+      </div>
+      
+
+
+    </div>
+    </div>
+
+
+    <div *ngIf="employees.length === 0" class="text-center py-8 text-white">
+      <p>No employee data available</p>
+    </div>
+
+  </div>
+
+<div *ngIf="showEditModal"
+     class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+
+  <div class="bg-white p-8 rounded-xl shadow-xl w-[450px] text-gray-800">
+
+    <!-- Title -->
+    <h2 class="text-xl font-semibold mb-6 text-center">
+      Edit Employee
+    </h2>
+
+    <form (ngSubmit)="saveEmployeeUpdate()" class="space-y-4">
+
+      <!-- First Name -->
+      <div>
+        <label class="block text-sm font-medium mb-1">First Name</label>
+        <input
+          [(ngModel)]="editForm.firstName"
+          name="firstName"
+          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Enter first name">
+      </div>
+
+      <!-- Last Name -->
+      <div>
+        <label class="block text-sm font-medium mb-1">Last Name</label>
+        <input
+          [(ngModel)]="editForm.lastName"
+          name="lastName"
+          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Enter last name">
+      </div>
+
+      <!-- Email -->
+      <div>
+        <label class="block text-sm font-medium mb-1">Email</label>
+        <input
+          [(ngModel)]="editForm.email"
+          name="email"
+          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Enter email">
+      </div>
+
+      <!-- Phone -->
+      <div>
+        <label class="block text-sm font-medium mb-1">Phone</label>
+        <input
+          [(ngModel)]="editForm.phone"
+          name="phone"
+          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Enter phone">
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex justify-end gap-3 pt-3">
+
+        <button
+          type="button"
+          (click)="closeModal()"
+          class="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400 transition">
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition">
+          Save
+        </button>
+
+      </div>
+
+    </form>
+  </div>
+
+</div>
+
+
     </div>
 
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -342,8 +551,67 @@
           Cancel
         </button>
       </div>
+
+      
     </div>
   </div>
+  
 </div>
 
+
+
+<!-- ADD EMPLOYEE MODAL -->
+<div *ngIf="showEmployeeModal"
+     class="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
+
+  <div class="bg-white rounded-2xl p-6 w-[600px] max-h-[90vh] overflow-auto shadow-xl">
+
+  <h2 class="text-xl font-bold mb-4 text-center">Add Employee</h2>
+
+  <div class="grid grid-cols-2 gap-3">
+
+    <!-- LEFT COLUMN -->
+    <input [(ngModel)]="employeeForm.email" placeholder="Email" class="input">
+    <input [(ngModel)]="employeeForm.password" placeholder="Password" class="input">
+
+    <input [(ngModel)]="employeeForm.firstName" placeholder="First Name" class="input">
+    <input [(ngModel)]="employeeForm.lastName" placeholder="Last Name" class="input">
+
+    <input [(ngModel)]="employeeForm.phone" placeholder="Phone" class="input">
+    <input [(ngModel)]="employeeForm.panNo" placeholder="PAN Number" class="input">
+
+    <input [(ngModel)]="employeeForm.aadharNo" placeholder="Aadhar Number" class="input">
+    <input [(ngModel)]="employeeForm.employeeType" placeholder="Employee Type" class="input">
+
+    <input [(ngModel)]="employeeForm.designation" placeholder="Designation" class="input">
+
+    <input [(ngModel)]="employeeForm.joiningDate" type="date" class="input">
+
+    <!-- RIGHT COLUMN (ADDRESS) -->
+    <input [(ngModel)]="employeeForm.address.street" placeholder="Street" class="input col-span-2">
+
+    <input [(ngModel)]="employeeForm.address.city" placeholder="City" class="input">
+    <input [(ngModel)]="employeeForm.address.state" placeholder="State" class="input">
+
+    <input [(ngModel)]="employeeForm.address.country" placeholder="Country" class="input">
+    <input [(ngModel)]="employeeForm.address.pinCode" placeholder="Pin Code" class="input">
+
+  </div>
+
+  <!-- BUTTONS -->
+  <div class="flex gap-3 mt-5">
+    <button (click)="addEmployee()" class="bg-blue-600 text-white py-2 rounded w-full hover:bg-blue-700">
+      Add
+    </button>
+    <button (click)="showEmployeeModal=false" class="bg-gray-300 py-2 rounded w-full hover:bg-gray-400">
+      Cancel
+    </button>
+  </div>
+
+</div>
+</div>
+
+
+
 <div id="project"></div>
+

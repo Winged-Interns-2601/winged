@@ -7,10 +7,32 @@ import { AdminComponent } from './admin/admin.component';
 import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
-    { path: '', redirectTo: 'login', pathMatch: 'full' },
-    { path: 'login', component: LoginComponent },
-    { path: 'register', component: RegisterComponent},
-    { path: 'portfolio', component: PortfolioComponent, canActivate: [AuthGuard] },
-    { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
-    { path: 'admin', component: AdminComponent}
+
+  // Default route - redirect to login
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+
+  { path: 'login', component: LoginComponent },
+
+  // USER/Portfolio
+  {
+    path: 'portfolio',
+    component: PortfolioComponent,
+    canActivate: [AuthGuard]
+  },
+
+  // HR
+  {
+    path: 'profile',
+    component: ProfileComponent,
+    canActivate: [AuthGuard],
+    data: { role: 'HR' }
+  },
+
+  // ADMIN
+  {
+    path: 'admin',
+    component: AdminComponent,
+    canActivate: [AuthGuard],
+    data: { role: 'ADMIN' }
+  }
 ];

@@ -3,12 +3,13 @@
 
   <div class="flex items-center justify-center w-full px-4">
 
-    <div class="border-2 border-white rounded-3xl overflow-hidden flex shadow-2xl w-[900px]">
+    <div class="border-2 border-white rounded-3xl overflow-hidden 
+                flex flex-col md:flex-row shadow-2xl 
+                max-w-[900px] w-full">
 
       <!-- LEFT PANEL -->
-       
-      <div class="bg-transparent w-1/2 p-6 text-white font-semibold flex flex-col justify-between">
-
+<!-- LEFT PANEL -->
+<div class="hidden md:flex bg-transparent w-full md:w-1/2 p-6 text-white font-semibold flex-col justify-between">
         <!-- TOP -->
         <div class="flex justify-between items-center">
           <p class="text-sm font-semibold">Selected Works</p>
@@ -25,7 +26,7 @@
         </div>
 
         <!-- BOTTOM -->
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 mt-6 md:mt-0">
           <img
             src="assets/image3.jpg"
             alt="User Avatar"
@@ -41,16 +42,15 @@
       </div>
 
       <!-- RIGHT PANEL -->
-      <div class="bg-[#002487] w-1/2 p-6 shadow-lg">
+      <div class="bg-[#002487] w-full md:w-1/2 p-6 shadow-lg">
 
-<div class="flex flex-col items-center mb-4">
-  <img src="assets/image5.png" class="h-10 w-auto" />
-<h2 class="text-2xl font-bold text-center text-white mt-1">
-  Login
-</h2>
-</div>
+        <div class="flex flex-col items-center mb-4">
+          <img src="assets/image5.png" class="h-10 w-auto" />
+          <h2 class="text-2xl font-bold text-center text-white mt-1">
+            Login
+          </h2>
+        </div>
 
-  
         <!-- Error -->
         <div *ngIf="errorMessage"
              class="mb-4 p-3 bg-orange-500 border border-white text-white rounded">
@@ -99,26 +99,13 @@
 
           <button
             type="submit"
+            [disabled]="isLoading"
             class="w-full py-2 rounded-lg text-white font-semibold
                    bg-orange-600 hover:bg-indigo-700
                    disabled:bg-gray-400 transition">
-            Login
+            {{ isLoading ? 'Logging in...' : 'Login' }}
           </button>
         </form>
-<!-- 
-        <p class="text-center text-white mt-4">
-          Don't have an account?
-          <a routerLink="/register" class="text-red-500 font-semibold hover:text-orange-500">
-            Register here
-          </a>
-        </p> -->
-
-        <!-- <div class="flex justify-center mt-4 gap-4 text-2xl">
-          <i class="bi bi-facebook text-white"></i>
-          <i class="bi bi-twitter text-white"></i>
-          <i class="bi bi-linkedin text-white"></i>
-          <i class="bi bi-instagram text-white"></i>
-        </div> -->
 
       </div>
 

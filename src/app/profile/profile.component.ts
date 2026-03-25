@@ -21,6 +21,153 @@ import { skip, take } from 'rxjs/operators';
 })
 export class ProfileComponent implements OnInit, OnDestroy {
 
+  showEmployeeModal = false;
+      employeeTypeFilter: string = '';
+      employees: any[] = [];        // store employees
+designationFilter: string = '';
+showEditModal: boolean = false;
+editingEmployee: any = null;
+  currentStep = 1;
+  
+  errorMessage = '';
+
+
+      employeeForm = {
+  firstName: '',
+  middleName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  employeeType: '',
+  designation: '',
+
+  panNo: '',
+  aadharNo: '',
+  joiningDate: '',
+  exitDate: '',
+  password: '',
+
+  address: {
+    street: '',
+    city: '',
+    state: '',
+    country: '',
+    pinCode: ''
+  },
+
+  portfolio: {
+  designation: '',
+  summary: '',
+  skills: [] as string[],
+  projects: [] as Array<{
+    projectName: string;
+    description: string;
+    techStack: string;
+    summary: string;
+    startDate?: string;
+    endDate?: string;
+    image?: string;
+  }>
+}
+
+};
+  cdr: any;
+
+openAddEmployeeModal() {
+  this.showEmployeeModal = true;
+}
+
+closeModal(){
+  this.showEditModal = false;
+  this.editingEmployee = null;
+}
+
+  addProject() {
+    const newProject = {
+      projectName: '',
+      description: '',
+      techStack: '',
+      summary: '',
+      image: '',
+      startDate: '',
+      endDate: ''
+    };
+    this.employeeForm.portfolio.projects.push(newProject);
+  }
+
+    onProjectFileSelected(event: any, projectIndex: number) {
+    const file = event.target.files[0];
+    if (file && this.employeeForm.portfolio.projects[projectIndex]) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.employeeForm.portfolio.projects[projectIndex].image = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+    removeProject(index: number) {
+    this.employeeForm.portfolio.projects.splice(index, 1);
+  }
+
+
+addEmployee() {
+
+  if (!this.employeeForm.email || !this.employeeForm.password) {
+    alert("Email & Password required");
+    return;
+  }
+
+  const payload = {
+    employeeId: Date.now(),
+    firstName: this.employeeForm.firstName,
+    middleName: this.employeeForm.middleName,
+    lastName: this.employeeForm.lastName,
+
+    employeeType: this.employeeForm.employeeType,
+    designation: this.employeeForm.designation,
+
+    email: this.employeeForm.email.toLowerCase().trim(),
+    password: this.employeeForm.password,
+
+    phone: this.employeeForm.phone,
+
+    address: this.employeeForm.address,
+
+    joiningDate: this.employeeForm.joiningDate,
+    exitDate: this.employeeForm.exitDate || null,
+
+    aadharNo: this.employeeForm.aadharNo,
+    panNO: this.employeeForm.panNo,
+    
+    // ⭐ ADD PORTFOLIO DATA (VERY IMPORTANT)
+    portfolio: {
+      skills: this.employeeForm.portfolio.skills || [],
+      projects: [], // Projects created individually after registration
+      designation: this.employeeForm.designation,
+      summary: this.employeeForm.portfolio.summary || '' // ⭐ ADD SUMMARY
+    }
+  };
+
+  console.log("Payload:", payload);
+
+  this.auth.registerBackend(payload).subscribe({
+    next: () => {
+      alert("Employee Added ✅");
+      this.showEmployeeModal = false;
+
+      // reset properly
+
+
+    },
+    error: (err) => {
+      console.error("ERROR:", err.error);
+      alert(err.error?.message || "Failed to add employee");
+    }
+  });
+  console.log("PAN:", this.employeeForm.panNo);
+  
+}
   projects: Project[] = []; // single source of truth for projects (subscribed from ProjectsService)
   private projectsSub: Subscription | null = null;
   user: PortfolioUser | null = null;
@@ -37,8 +184,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   showSkillModal: boolean = false;
   newSkill: string = '';
-  formData: any;
+
   selectedFile?: File;
+  editForm: any = {};
+
 
   // Summary modal properties
   showSummaryModal = false;
@@ -96,6 +245,72 @@ console.log("API RAW:", projects);
   });
 }
 
+    openEditModal(employee: any) {
+
+  this.editingEmployee = employee;
+  this.showEditModal = true;
+    this.editForm = { ...employee };   // copy employee data
+
+
+  // deep copy employee
+  this.editForm = JSON.parse(JSON.stringify(employee));
+
+}
+
+    deletePortfolio(portfolioId?: number) {
+      console.log("Deleting portfolioId:", portfolioId);
+      console.log("Type of portfolioId:", typeof portfolioId);
+
+      if (!portfolioId) {
+        alert('Portfolio not found');
+        return;
+      }
+
+      if (!confirm('Delete entire portfolio?')) return;
+
+      this.portfolioService.deletePortfolio(portfolioId).subscribe({
+        next: (res) => {
+          console.log('Portfolio deleted successfully', res);
+
+          // Clear portfolio reference instead of removing employee entirely
+          // This prevents adding projects to deleted portfolios
+          this.employees = this.employees.map(emp => 
+            emp.portfolio?.id === portfolioId 
+              ? { ...emp, portfolio: null } 
+              : emp
+          );
+          
+          // Force UI update to disable delete button immediately
+          this.cdr.detectChanges();
+          
+          // Always show success message for successful deletion (2xx status)
+          alert('Portfolio deleted successfully');
+        },
+        error: (err) => {
+          console.error('Delete failed', err);
+          console.error('Error status:', err.status);
+          console.error('Error message:', err.error?.message);
+          console.error('Full error:', err);
+          
+          // Check specific error codes for better user feedback
+          if (err.status === 404) {
+            alert('Portfolio does not exist');
+          } else if (err.status === 400) {
+            // Check the error message for "not found"
+            const errorMessage = err.error?.message || '';
+            if (errorMessage.toLowerCase().includes('not found') || 
+                errorMessage.toLowerCase().includes('does not exist') ||
+                errorMessage.toLowerCase().includes('no portfolio')) {
+              alert('Portfolio does not exist');
+            } else {
+              alert('portfolio already delete ');
+            }
+          } else if (err.status !== 200 && err.status !== 204) {
+            alert('portfolio already delete ');
+          }
+        }
+      });
+    }
 
 ngOnInit() {
 
@@ -103,6 +318,14 @@ ngOnInit() {
 
   // ⭐ ONLY backend user
   const backendUser = this.auth.getLoggedInUser();
+
+  this.employeeService.getAllUsers().subscribe({
+  next: (res) => {
+    this.employees = res;
+    console.log("Employees loaded:", res);
+  },
+  error: (err) => console.error(err)
+});
 
   if (!backendUser?.employeeId) {
     this.router.navigate(['/login']);
@@ -214,6 +437,83 @@ cancelEdit() {
   this.editingId = null;
   this.editProject = { title: '', tech: '', summary: '', image: '' };
 }
+
+saveEmployeeUpdate() {
+
+  if (!this.editingEmployee) return;
+
+  const id = this.editingEmployee.id;  // use DB id
+  
+  // DEBUG: Log all data before sending
+  console.log('=== UPDATE DEBUG START ===');
+  console.log('Editing Employee ID:', id);
+  console.log('Edit Form Data:', this.editForm);
+  
+  const token = localStorage.getItem('TOKEN');
+  console.log('Token from localStorage:', token ? 'EXISTS' : 'MISSING');
+  console.log('Token value (first 20 chars):', token ? token.substring(0, 20) + '...' : 'null');
+
+  const updatedEmployee = {
+    firstName: this.editForm.firstName,
+    lastName: this.editForm.lastName,
+    email: this.editForm.email,
+    phone: this.editForm.phone
+    
+  };
+  
+  console.log('Updated Employee Object:', updatedEmployee);
+  console.log('=== UPDATE DEBUG END ===');
+
+  this.employeeService.updateEmployee(id, updatedEmployee)
+    .subscribe({
+      next: (response) => {
+        console.log(' Update SUCCESS:', response);
+
+        const index = this.employees.findIndex(e => e.id === id);
+
+        if (index !== -1) {
+          this.employees[index] = { ...this.employees[index], ...updatedEmployee };
+        }
+
+        // alert("Employee updated successfully");
+
+        this.showEditModal = false;
+        this.editingEmployee = null;
+
+      },
+      error: (err) => {
+        console.error(' Update ERROR:', err);
+        console.error('Error status:', err.status);
+        console.error('Error statusText:', err.statusText);
+        console.error('Error URL:', err.url);
+        console.error('Error headers:', err.headers);
+        console.error('Full error object:', err);
+        
+        // Specific error messages
+        if (err.status === 403) {
+          alert('403 Forbidden: You do not have permission to update this employee');
+        } else if (err.status === 401) {
+          alert('401 Unauthorized: Please login again');
+        } else {
+          alert(`Update failed: ${err.status} ${err.statusText}`);
+        }
+      }
+    });
+}
+
+  nextStep() {
+    if (this.currentStep < 4) {
+      this.currentStep++;
+      this.errorMessage = '';
+    }
+  }
+
+  prevStep() {
+    if (this.currentStep > 1) {
+      this.currentStep--;
+      this.errorMessage = '';
+    }
+  }
 
 
 saveEdit() {
@@ -954,28 +1254,6 @@ loadPortfolio(employeeId: number): Promise<void> {
   });
 }
 
-
-  // Merge localStorage projects into portfolio (one-time migration)
-
-
-  // Test method to verify database connection (does not re-load portfolio)
-  // testDatabaseConnection() {
-  //   console.log('🔍 Testing database connection...');
-
-  //   if (!this.user) {
-  //     console.log('⚠️ No user available to fetch portfolio for.');
-  //     return;
-  //   }
-
-  //   // Avoid duplicate portfolio API calls — use already-loaded portfolio data if present
-  //   if (this.portfolioId || (this.projects && this.projects.length > 0)) {
-  //     console.log('✅ Portfolio already loaded; database connection appears healthy.');
-  //     return;
-  //   }
-
-  //   console.log('⚠️ Portfolio not loaded yet — call `loadPortfolio(employeeId)` from ngOnInit instead of re-fetching here.');
-  // }
-
   ngOnDestroy() {
     if (this.projectsSub) {
       this.projectsSub.unsubscribe();
@@ -1008,7 +1286,19 @@ toggleMobileMenu() {
   this.mobileMenuOpen = !this.mobileMenuOpen;
 }
 
-     
-  
-  
+get filteredEmployees() {
+  return this.employees.filter(emp => {
+
+    const matchEmployeeType =
+      !this.employeeTypeFilter ||
+      emp.employeeType?.toLowerCase() === this.employeeTypeFilter.toLowerCase();
+
+    const matchDesignation =
+      !this.designationFilter ||
+      emp.designation?.toLowerCase() === this.designationFilter.toLowerCase();
+
+    return matchEmployeeType && matchDesignation;
+  });
+}
+
 }
