@@ -5,6 +5,7 @@ import { IsLoggedService } from './is-logged.service';
 import { environment } from '../../environments/environment';
 
 export interface PortfolioUser {
+  employeeId(employeeId: any): unknown;
   username?: string;
   email: string;
   password?: string;

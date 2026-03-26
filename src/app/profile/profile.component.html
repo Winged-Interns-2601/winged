@@ -54,10 +54,10 @@
         <div class="relative">
           <div class="flex items-center gap-2 cursor-pointer" (click)="toggleMenu()">
             <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg h-10 w-10 flex items-center justify-center rounded-full">
-      {{ user?.firstName?.charAt(0)?.toUpperCase() }}{{ user?.lastName?.charAt(0)?.toUpperCase() }}
+      {{ activeProfile?.firstName?.charAt(0)?.toUpperCase() }}{{ activeProfile?.lastName?.charAt(0)?.toUpperCase() }}
     </div>
     <div class="flex items-center gap-2 shadow shadow-white/30 p-[7px] rounded-full">
-      <span class="text-white">{{ user?.firstName || 'User' }}</span>
+      <span class="text-white">{{ activeProfile?.firstName || 'activeProfile' }}</span>
       <span class="text-white">
         <i class="fa-solid" [ngClass]="showMenu ? 'fa-angle-up' : 'fa-angle-down'"></i>
       </span>
@@ -78,18 +78,18 @@
       </div>
     </div>
 
-    <!-- User Details Card -->
+    <!-- activeProfile Details Card -->
 <div class="bg-white/10 backdrop-blur-xl border border-white/20 p-6 rounded-2xl mb-6 mt-5 shadow-xl hover:shadow-2xl transition"> 
       <div class="flex justify-between items-start gap-6">
         <div class="min-w-0">
-          <h3 class="text-2xl text-white font-bold">{{ user?.firstName }} {{ user?.middleName }} {{ user?.lastName }}</h3>
-          <p class="text-white wrap-break-word">{{ user?.email }}</p>
-          <p class="text-white">{{ user?.phone }}</p>
+          <h3 class="text-2xl text-white font-bold">{{ activeProfile?.firstName }} {{ activeProfile?.middleName }} {{ activeProfile?.lastName }}</h3>
+          <p class="text-white wrap-break-word">{{ activeProfile?.email }}</p>
+          <p class="text-white">{{ activeProfile?.phone }}</p>
         </div>
 
         <div class="text-right shrink-0">
-          <p class="text-sm text-white font-semibold">{{ user?.designation }}</p>
-          <p class="text-sm text-white">{{ user?.employeeType }}</p>
+          <p class="text-sm text-white font-semibold">{{ activeProfile?.designation }}</p>
+          <p class="text-sm text-white">{{ activeProfile?.employeeType }}</p>
         </div>
       </div>
 
@@ -97,27 +97,27 @@
         <div>
           <p class="text-white">Address</p>
           <p class="text-white font-medium">
-            {{ user?.address?.street }}, {{ user?.address?.city }}, {{ user?.address?.state }}, {{ user?.address?.country }} - {{ user?.address?.pinCode }}
+            {{ activeProfile?.address?.street }}, {{ activeProfile?.address?.city }}, {{ activeProfile?.address?.state }}, {{ activeProfile?.address?.country }} - {{ activeProfile?.address?.pinCode }}
           </p>
         </div>
 
        <div>
   <p class="text-white">Joining / Exit</p>
   <p class="text-white font-medium">
-    {{ user?.joiningDate | date:'dd-MM-yyyy' }} /
-    {{ user?.exitDate | date:'dd-MM-yyyy' }}
+    {{ activeProfile?.joiningDate | date:'dd-MM-yyyy' }} /
+    {{ activeProfile?.exitDate | date:'dd-MM-yyyy' }}
   </p>
 </div>
 
 
         <div>
           <p class="text-white">PAN</p>
-          <p class="text-white font-medium">{{ user?.panNO || user?.panNo || 'PAN not found' }}</p>
+          <p class="text-white font-medium">{{ activeProfile?.panNO || activeProfile?.panNo || 'PAN not found' }}</p>
         </div>
 
         <div>
           <p class="text-white">Aadhar</p>
-          <p class="text-white font-medium">{{ user?.aadharNo || 'Aadhar not found' }}</p>
+          <p class="text-white font-medium">{{ activeProfile?.aadharNo || 'Aadhar not found' }}</p>
         </div>
       </div>
     </div>
@@ -132,8 +132,8 @@
         </button>
       </div>
       
-      <div *ngIf="user?.portfolio?.summary || user?.summary; else noSummary" class="text-white ">
-        <p>{{ user?.portfolio?.summary || user?.summary }}</p>
+      <div *ngIf="activeProfile?.portfolio?.summary; else noSummary" class="text-white ">
+        <p>{{ activeProfile?.portfolio?.summary }}</p>
       </div>
       
       <ng-template #noSummary>
@@ -152,8 +152,8 @@
         </button>
       </div>
       
-      <div class="flex flex-wrap gap-2 mb-4" *ngIf="userSkills.length > 0; else noSkills">
-        <span *ngFor="let skill of userSkills" 
+      <div class="flex flex-wrap gap-2 mb-4" *ngIf="activeProfile?.portfolio?.skills?.length > 0; else noSkills">
+        <span *ngFor="let skill of activeProfile?.portfolio?.skills" 
               class="bg-purple-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
           {{ skill }}
           <button (click)="removeSkill(skill)" class="hover:text-red-200 font-bold">×</button>
@@ -277,6 +277,18 @@ Edit
           (click)="deletePortfolio(employee.portfolio?.id)"
           class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed">
           Delete
+        </button>
+
+        <button
+          (click)="viewEmployeePortfolio(employee)"
+          class="bg-cyan-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-cyan-600">
+          Show Portfolio
+        </button>
+
+        <button
+          (click)="viewEmployeeProfile(employee)"
+          class="bg-indigo-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-indigo-600">
+          Show Profile
         </button>
       </div>
       
@@ -489,8 +501,8 @@ Edit
 
 <!-- PROJECT MODAL -->
 <div *ngIf="showProjectModal" 
-     class="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
-  <div class="bg-white rounded-2xl p-8 shadow-2xl border border-gray-200 animate-fade-in w-full max-w-2xl">
+     class="fixed inset-0 bg-black/50 flex items-center justify-center z-999999">
+  <div class="bg-white rounded-2xl p-8 shadow-2xl border border-gray-200 animate-fade-in w-full max-w-2xl ">
     <h2 class="text-2xl font-bold mb-6">Edit Project</h2>
     
     <div class="space-y-4">
@@ -561,55 +573,136 @@ Edit
 
 
 <!-- ADD EMPLOYEE MODAL -->
+
 <div *ngIf="showEmployeeModal"
      class="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
 
-  <div class="bg-white rounded-2xl p-6 w-[600px] max-h-[90vh] overflow-auto shadow-xl">
+  <div class="bg-white rounded-2xl p-6 w-[750px] max-h-[90vh] overflow-auto shadow-xl">
 
-  <h2 class="text-xl font-bold mb-4 text-center">Add Employee</h2>
+    <h2 class="text-xl font-bold mb-4 text-center">Add Employee</h2>
 
-  <div class="grid grid-cols-2 gap-3">
+    <!-- STEP INDICATOR -->
+    <div class="flex justify-between mb-4 text-sm font-semibold">
+      <span [class.text-blue-600]="currentStep===1">1. Basic</span>
+      <span [class.text-blue-600]="currentStep===2">2. Address</span>
+      <span [class.text-blue-600]="currentStep===3">3. Login</span>
+      <span [class.text-blue-600]="currentStep===4">4. Portfolio</span>
+    </div>
 
-    <!-- LEFT COLUMN -->
-    <input [(ngModel)]="employeeForm.email" placeholder="Email" class="input">
-    <input [(ngModel)]="employeeForm.password" placeholder="Password" class="input">
+    <!-- ================= STEP 1 ================= -->
+    <div *ngIf="currentStep === 1" class="grid grid-cols-2 gap-3">
 
-    <input [(ngModel)]="employeeForm.firstName" placeholder="First Name" class="input">
-    <input [(ngModel)]="employeeForm.lastName" placeholder="Last Name" class="input">
+      <input [(ngModel)]="employeeForm.firstName" placeholder="First Name" class="input">
+      <input [(ngModel)]="employeeForm.middleName" placeholder="Middle Name" class="input">
 
-    <input [(ngModel)]="employeeForm.phone" placeholder="Phone" class="input">
-    <input [(ngModel)]="employeeForm.panNo" placeholder="PAN Number" class="input">
+      <input [(ngModel)]="employeeForm.lastName" placeholder="Last Name" class="input">
 
-    <input [(ngModel)]="employeeForm.aadharNo" placeholder="Aadhar Number" class="input">
-    <input [(ngModel)]="employeeForm.employeeType" placeholder="Employee Type" class="input">
+      <select [(ngModel)]="employeeForm.employeeType" class="input">
+        <option value="">Employee Type</option>
+        <option>Full Time</option>
+        <option>Intern</option>
+        <option>Contract</option>
+      </select>
 
-    <input [(ngModel)]="employeeForm.designation" placeholder="Designation" class="input">
+      <input [(ngModel)]="employeeForm.phone" placeholder="Phone" class="input">
 
-    <input [(ngModel)]="employeeForm.joiningDate" type="date" class="input">
+    </div>
 
-    <!-- RIGHT COLUMN (ADDRESS) -->
-    <input [(ngModel)]="employeeForm.address.street" placeholder="Street" class="input col-span-2">
+    <!-- ================= STEP 2 ================= -->
+    <div *ngIf="currentStep === 2" class="grid grid-cols-2 gap-3">
 
-    <input [(ngModel)]="employeeForm.address.city" placeholder="City" class="input">
-    <input [(ngModel)]="employeeForm.address.state" placeholder="State" class="input">
+      <input [(ngModel)]="employeeForm.address.street" placeholder="Street" class="input col-span-2">
 
-    <input [(ngModel)]="employeeForm.address.country" placeholder="Country" class="input">
-    <input [(ngModel)]="employeeForm.address.pinCode" placeholder="Pin Code" class="input">
+      <input [(ngModel)]="employeeForm.address.city" placeholder="City" class="input">
+      <input [(ngModel)]="employeeForm.address.state" placeholder="State" class="input">
+
+      <input [(ngModel)]="employeeForm.address.country" placeholder="Country" class="input">
+      <input [(ngModel)]="employeeForm.address.pinCode" placeholder="Pin Code" class="input">
+
+      <input [(ngModel)]="employeeForm.panNo" placeholder="PAN" class="input">
+      <input [(ngModel)]="employeeForm.aadharNo" placeholder="Aadhar" class="input">
+
+    </div>
+
+    <!-- ================= STEP 3 ================= -->
+    <div *ngIf="currentStep === 3" class="grid grid-cols-2 gap-3">
+
+      <input type="date" [(ngModel)]="employeeForm.joiningDate" class="input">
+      <input type="date" [(ngModel)]="employeeForm.exitDate" class="input">
+
+      <input [(ngModel)]="employeeForm.email" placeholder="Email" class="input">
+      <input [(ngModel)]="employeeForm.password" placeholder="Password" class="input">
+
+    </div>
+
+    <!-- ================= STEP 4 ================= -->
+    <div *ngIf="currentStep === 4" class="space-y-4">
+
+      <select [(ngModel)]="employeeForm.designation" class="input w-full">
+        <option value="">Designation</option>
+        <option>Fullstack</option>
+        <option>Frontend</option>
+        <option>Backend</option>
+      </select>
+
+      <!-- Skills -->
+      <div class="flex gap-2">
+        <input [(ngModel)]="newSkill" class="input" placeholder="Enter skill">
+        <button (click)="addEmployeeSkill()" class="bg-blue-600 text-white px-3 rounded">
+          Add
+        </button>
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <span *ngFor="let skill of employeeForm.portfolio.skills"
+              class="bg-blue-100 px-2 py-1 rounded-full text-sm">
+          {{skill}}
+          <button (click)="removeEmployeeSkill(skill)">x</button>
+        </span>
+      </div>
+
+      <!-- Summary -->
+      <textarea [(ngModel)]="employeeForm.portfolio.summary"
+                class="input w-full"
+                placeholder="Summary"></textarea>
+
+      <!-- Projects -->
+      <!-- <button (click)="openNewProjectModal()" class="bg-purple-600 text-white px-3 py-1 rounded">
+        + Add Project
+      </button> -->
+
+
+
+    </div>
+
+    <!-- BUTTONS -->
+    <div class="flex justify-between mt-5">
+
+      <button *ngIf="currentStep > 1"
+              (click)="prevStep()"
+              class="bg-gray-300 px-4 py-2 rounded">
+        Back
+      </button>
+
+      <button *ngIf="currentStep < 4"
+              (click)="nextStep()"
+              class="bg-blue-600 text-white px-4 py-2 rounded ml-auto">
+        Next
+      </button>
+
+      <button *ngIf="currentStep === 4"
+              (click)="addEmployee()"
+              class="bg-green-600 text-white px-4 py-2 rounded ml-auto">
+        Submit
+      </button>
+
+    </div>
 
   </div>
-
-  <!-- BUTTONS -->
-  <div class="flex gap-3 mt-5">
-    <button (click)="addEmployee()" class="bg-blue-600 text-white py-2 rounded w-full hover:bg-blue-700">
-      Add
-    </button>
-    <button (click)="showEmployeeModal=false" class="bg-gray-300 py-2 rounded w-full hover:bg-gray-400">
-      Cancel
-    </button>
-  </div>
-
 </div>
-</div>
+
+
+
 
 
 

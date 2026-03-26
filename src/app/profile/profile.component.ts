@@ -1,6 +1,6 @@
 import { NgFor, NgIf, DatePipe, NgClass } from '@angular/common';
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService, PortfolioUser } from '../services/auth.service';
 import { IsLoggedService } from '../services/is-logged.service';
@@ -71,10 +71,40 @@ editingEmployee: any = null;
 }
 
 };
-  cdr: any;
-
+  
 openAddEmployeeModal() {
   this.showEmployeeModal = true;
+  this.currentStep = 1;
+  this.newSkill = '';
+  
+  // Reset form to default values
+  this.employeeForm = {
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    employeeType: '',
+    designation: '',
+    panNo: '',
+    aadharNo: '',
+    joiningDate: '',
+    exitDate: '',
+    password: '',
+    address: {
+      street: '',
+      city: '',
+      state: '',
+      country: '',
+      pinCode: ''
+    },
+    portfolio: {
+      designation: '',
+      summary: '',
+      skills: [],
+      projects: []
+    }
+  };
 }
 
 closeModal(){
@@ -119,7 +149,7 @@ addEmployee() {
   }
 
   const payload = {
-    employeeId: Date.now(),
+    // employeeId: Date.now(),
     firstName: this.employeeForm.firstName,
     middleName: this.employeeForm.middleName,
     lastName: this.employeeForm.lastName,
@@ -151,26 +181,24 @@ addEmployee() {
 
   console.log("Payload:", payload);
 
-  this.auth.registerBackend(payload).subscribe({
-    next: () => {
-      alert("Employee Added ✅");
-      this.showEmployeeModal = false;
+this.auth.registerBackend(payload).subscribe({
+  next: (res) => {
 
-      // reset properly
+    console.log("Backend Response:", res); // ⭐ IMPORTANT
 
+    alert("Employee Added ✅");
 
-    },
-    error: (err) => {
-      console.error("ERROR:", err.error);
-      alert(err.error?.message || "Failed to add employee");
-    }
-  });
+  },
+  error: (err) => {
+    console.error(err);
+  }
+});
   console.log("PAN:", this.employeeForm.panNo);
-  
 }
   projects: Project[] = []; // single source of truth for projects (subscribed from ProjectsService)
   private projectsSub: Subscription | null = null;
   user: PortfolioUser | null = null;
+  selectedEmployee: any = null;
   portfolioId: number | null = null;  // Track portfolio ID for backend updates
   
   // Mobile menu properties
@@ -188,24 +216,43 @@ addEmployee() {
   selectedFile?: File;
   editForm: any = {};
 
-
   // Summary modal properties
   showSummaryModal = false;
   newSummary = '';
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private auth: AuthService,
     private isLoggedService: IsLoggedService,
     private portfolioService: PortfolioService,
     private projectsService: ProjectsService,
     private projectService: ProjectService,
-    private employeeService: EmployeeService
+    private employeeService: EmployeeService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   // Add a getter to ensure skills are always available
   get userSkills(): string[] {
-    return this.user?.skills || [];
+    return (this.selectedEmployee?.skills || this.user?.skills || []);
+  }
+
+  get currentProfile() {
+    return this.selectedEmployee || this.user;
+  }
+
+  get activeProfile() {
+    const result = this.selectedEmployee || this.user;
+    console.log('🔍 activeProfile called:', {
+      hasSelectedEmployee: !!this.selectedEmployee,
+      hasUser: !!this.user,
+      selectedEmployeeId: this.selectedEmployee?.employeeId,
+      userId: this.user?.employeeId,
+      resultFirstName: result?.firstName,
+      resultLastName: result?.lastName,
+      resultId: result?.employeeId
+    });
+    return result;
   }
 
   // Add a setter that preserves skills
@@ -343,6 +390,63 @@ ngOnInit() {
     this.user.summary = '';
   }
 
+  // If we have employeeId query param, load selected profile employee
+  this.route.queryParams.subscribe(params => {
+    const idParam = Number(params['employeeId']);
+    if (idParam && !isNaN(idParam)) {
+      if (!this.user || idParam !== Number(this.user.employeeId)) {
+        this.employeeService.getByEmployeeId(idParam).subscribe({
+          next: (employeeData: any) => {
+            this.selectedEmployee = employeeData;
+            console.log('🎯 Selected employee profile loaded from query param:', employeeData);
+            console.log('🔍 selectedEmployee set to:', {
+              firstName: employeeData?.firstName,
+              lastName: employeeData?.lastName,
+              employeeId: employeeData?.employeeId,
+              hasPortfolio: !!employeeData?.portfolio
+            });
+            
+            // Load projects for this employee immediately
+            this.loadProjects(employeeData.employeeId);
+            
+            // Force immediate UI update
+            this.cdr.detectChanges();
+            
+            // Additional safety net - run change detection after current cycle
+            setTimeout(() => {
+              this.cdr.detectChanges();
+              console.log('🔄 Forced change detection in setTimeout');
+            }, 0);
+
+            // Load the employee's portfolio data
+            if (employeeData.employeeId) {
+              this.portfolioService.getPortfolio(employeeData.employeeId).subscribe({
+                next: (portfolioData: any) => {
+                  // Merge portfolio data into selected employee
+                  this.selectedEmployee.portfolio = portfolioData;
+                  console.log('Portfolio data loaded for query param employee:', portfolioData);
+                  this.cdr.detectChanges(); // Force UI update
+                },
+                error: (err) => {
+                  console.error('Failed to load portfolio for query param employee:', err);
+                  // Still show profile even if portfolio fails to load
+                }
+              });
+            }
+          },
+          error: (err) => {
+            console.error('Failed to load selected employee profile from query param:', err);
+
+          }
+        });
+      } else {
+        this.selectedEmployee = null;
+      }
+    } else {
+      this.selectedEmployee = null;
+    }
+  });
+
   // subscribe first
   this.projectsSub = this.projectsService.projects$.subscribe(p => {
     console.log('🔄 ProfileComponent received projects update:', p);
@@ -352,56 +456,31 @@ ngOnInit() {
     console.log('✅ UI should update with new projects');
   });
 
-  const empId = Number(backendUser.employeeId);
-
-  // Load portfolio first, then fetch employee data
-  console.log('🔄 Starting portfolio load for employee:', empId);
-  this.loadPortfolio(empId).then(() => {
-    console.log('✅ Portfolio loaded, now fetching employee data');
-    console.log('👤 User skills after portfolio load:', this.user?.skills);
-    
-    // Fetch complete employee data from backend (but don't overwrite skills from portfolio)
-    console.log('Fetching employee data for ID:', backendUser.employeeId);
-    this.employeeService.getByEmployeeId(backendUser.employeeId).subscribe({
-      next: (completeEmployee: any) => {
-        console.log('Complete employee data received:', completeEmployee);
-        
-        // Preserve existing skills and summary from portfolio, update other fields
-        const existingSkills = this.user?.skills || [];
-        const existingSummary = this.user?.summary || '';
-        console.log('🎯 Preserving skills:', existingSkills);
-        console.log('📝 Preserving summary:', existingSummary);
-        
-        // Merge employee data but NEVER overwrite skills and summary
-        this.user = {
-          ...completeEmployee,
-          skills: existingSkills, // Always keep portfolio skills
-          summary: existingSummary   // ⭐ ADD THIS
-        };
-        
-        console.log('👤 Final user after employee data merge:', this.user);
-      },
-      error: (err) => {
-        console.error('Failed to fetch complete employee data:', err);
-        // Fallback to localStorage data
-        console.log('Falling back to localStorage data:', backendUser);
-        
-        // Ensure skills and summary are preserved even in error case
-        const existingSkills = this.user?.skills || [];
-        const existingSummary = this.user?.summary || '';
-        this.user = {
-          ...backendUser,
-          skills: existingSkills,
-          summary: existingSummary
-        };
-        
-        if (this.user && !this.user.skills) {
-          this.user.skills = [];
-        }
-      }
-    });
+  // Load employee data first, then portfolio
+  console.log('🔄 Starting employee data load for ID:', backendUser.employeeId);
+  this.employeeService.getByEmployeeId(backendUser.employeeId).subscribe({
+    next: (completeEmployee: any) => {
+      console.log('Complete employee data received:', completeEmployee);
+      this.user = completeEmployee;
+      
+      // Now load portfolio and MERGE (don't overwrite)
+      console.log('✅ Employee data loaded, now loading portfolio');
+      this.loadPortfolio(Number(backendUser.employeeId)).then(() => {
+        console.log('✅ Portfolio loaded and merged');
+        console.log('👤 Final user with portfolio:', this.user);
+      });
+    },
+    error: (err) => {
+      console.error('Failed to fetch employee data:', err);
+      // Fallback to localStorage and try to load portfolio
+      this.user = backendUser;
+      this.loadPortfolio(Number(backendUser.employeeId));
+    }
   });
 
+  // Load projects based on current profile (selected employee or logged-in user)
+  const empId = this.currentProfile?.employeeId || Number(backendUser.employeeId);
+  console.log('🔄 Loading projects for employee:', empId, '(currentProfile:', this.currentProfile?.firstName || 'logged-in user', ')');
   this.loadProjects(empId);
 }
 
@@ -419,7 +498,7 @@ ngOnInit() {
 
     // Use ProjectsService (single source of truth)
     this.projectsService.deleteProject(id);
-    this.savePortfolioAfterChange();
+
   }
 
 startEdit(project: Project) {
@@ -523,7 +602,7 @@ saveEdit() {
     return;
   }
 
-  const empId = (this.user as any)?.employeeId;
+  const empId = this.currentProfile?.employeeId;
 
   if (!empId) {
     alert("Employee ID not found");
@@ -620,7 +699,7 @@ saveEdit() {
         
         // Save portfolio with updated project data (including new image)
         console.log('💾 === SAVING PORTFOLIO ===');
-        this.savePortfolioAfterChange();
+        
         
         this.cancelEdit();
         console.log('🔚 === PROJECT UPDATE COMPLETE ===');
@@ -685,7 +764,7 @@ saveEdit() {
         
         // Save portfolio with updated project data (including new image)
         console.log('💾 Saving portfolio after project add...');
-        this.savePortfolioAfterChange();
+      
         
         this.cancelEdit();
       },
@@ -743,15 +822,15 @@ openNewProjectModal() {
 
   // Persist the updated portfolio (called after project/skill changes)
   private savePortfolioAfterChange() {
-    if (!this.user) {
-      console.warn('No user available to save portfolio changes');
+    if (!this.currentProfile) {
+      console.warn('No currentProfile available to save portfolio changes');
       return;
     }
 
     const portfolioData = {
-      skills: this.user.skills || [],
-      designation: this.user.designation || 'Developer',
-      summary: this.user.summary || '', // ⭐ ADD PORTFOLIO SUMMARY
+      skills: this.currentProfile?.portfolio?.skills || [],
+      designation: this.currentProfile?.designation || 'Developer',
+      summary: this.currentProfile?.portfolio?.summary || '', // ⭐ ADD PORTFOLIO SUMMARY
       projects: (this.projects || []).map(p => ({
   projectName: p.title || '',
   description: p.description || '',
@@ -775,7 +854,7 @@ openNewProjectModal() {
         }
       });
     } else {
-      const employeeId = (this.user as any).employeeId || 1;
+      const employeeId = this.currentProfile?.employeeId || 1;
       this.portfolioService.addPortfolio(employeeId, portfolioData).subscribe({
         next: (res: any) => {
           this.portfolioId = res?.id || this.portfolioId;
@@ -830,6 +909,35 @@ openNewProjectModal() {
         alert('Failed to create portfolio. Please try again.');
       }
     });
+  }
+
+  // Skill management methods for employee form
+  addEmployeeSkill() {
+    const trimmedSkill = this.newSkill.trim();
+    
+    if (!trimmedSkill) {
+      return;
+    }
+    
+    if (!this.employeeForm.portfolio.skills) {
+      this.employeeForm.portfolio.skills = [];
+    }
+    
+    // Add skill if not already present
+    if (!this.employeeForm.portfolio.skills.includes(trimmedSkill)) {
+      this.employeeForm.portfolio.skills.push(trimmedSkill);
+    }
+    
+    this.newSkill = '';
+  }
+
+  removeEmployeeSkill(skill: string) {
+    if (this.employeeForm.portfolio.skills) {
+      const index = this.employeeForm.portfolio.skills.indexOf(skill);
+      if (index > -1) {
+        this.employeeForm.portfolio.skills.splice(index, 1);
+      }
+    }
   }
 
   // Skill management methods
@@ -904,23 +1012,20 @@ openNewProjectModal() {
       return;
     }
 
-    // Use same field as register page: user.portfolio.summary
-    this.newSummary = this.user?.portfolio?.summary || this.user?.summary || '';
+    // Use same field as register page: currentProfile.portfolio.summary
+    this.newSummary = this.currentProfile?.portfolio?.summary || this.currentProfile?.summary || '';
     console.log('📝 Opening summary modal with current value:', this.newSummary);
     this.showSummaryModal = true;
   }
 
   saveSummary() {
-    if (!this.user) return;
+    if (!this.currentProfile) return;
 
-    // Use same field as register page: user.portfolio.summary
-    if (!this.user.portfolio) {
-      this.user.portfolio = {};
+    // Use same field as register page: currentProfile.portfolio.summary
+    if (!this.currentProfile.portfolio) {
+      this.currentProfile.portfolio = {};
     }
-    this.user.portfolio.summary = this.newSummary;
-    
-    // Also update user.summary for compatibility
-    this.user.summary = this.newSummary;
+    this.currentProfile.portfolio.summary = this.newSummary;
 
     // Save to localStorage for immediate persistence
     const currentUser = this.auth.getLoggedInUser();
@@ -931,7 +1036,8 @@ openNewProjectModal() {
           ...currentUser.portfolio,
           summary: this.newSummary
         },
-        summary: this.newSummary
+        // Also update the top-level summary for compatibility
+        summary: this.currentProfile.summary
       };
       localStorage.setItem('LOGGED_IN_USER', JSON.stringify(updatedUser));
       console.log('📝 Summary saved to localStorage (portfolio.summary):', this.newSummary);
@@ -939,8 +1045,8 @@ openNewProjectModal() {
 
     // Also save to portfolio service for backend sync
     const portfolioData = {
-      skills: this.user.skills || [],
-      designation: this.user.designation || 'Developer',
+      skills: this.currentProfile?.portfolio?.skills || [],
+      designation: this.currentProfile?.designation || 'Developer',
       summary: this.newSummary,
       projects: (this.projects || []).map(p => ({
         projectName: p.title || '',
@@ -958,10 +1064,9 @@ openNewProjectModal() {
     // Use same save pipeline as skills
     this.actualSaveToBackend(portfolioData);
 
-    // Update local user data immediately for UI refresh
-    this.user.summary = this.newSummary;
-    if (this.user.portfolio) {
-      this.user.portfolio.summary = this.newSummary;
+    // Update local data immediately for UI refresh
+    if (this.currentProfile.portfolio) {
+      this.currentProfile.portfolio.summary = this.newSummary;
     }
 
     this.showSummaryModal = false;
@@ -987,24 +1092,25 @@ openNewProjectModal() {
       return;
     }
     
-    if (!this.user || !this.user.skills) {
-      console.log('❌ No user or skills array found');
-      console.log('User object:', this.user);
-      console.log('User.skills:', this.user?.skills);
+    if (!this.currentProfile || !this.currentProfile.portfolio?.skills) {
+      console.log('❌ No currentProfile or portfolio skills array found');
+      console.log('CurrentProfile object:', this.currentProfile);
+      console.log('CurrentProfile.portfolio.skills:', this.currentProfile?.portfolio?.skills);
       alert('User data not loaded. Please refresh the page.');
       return;
     }
     
     // Check for duplicates
-    if (this.user.skills.includes(trimmedSkill)) {
+    if (this.currentProfile?.portfolio?.skills?.includes(trimmedSkill)) {
       console.log('❌ Skill already exists:', trimmedSkill);
       alert('This skill already exists!');
       return;
     }
     
     // Add skill to local array
-    this.user.skills.push(trimmedSkill);
-    console.log('✅ Skill added to local array. New skills:', this.user.skills);
+    const currentSkills = this.currentProfile?.portfolio?.skills || [];
+    currentSkills.push(trimmedSkill);
+    console.log('✅ Skill added to local array. New skills:', currentSkills);
     
     // Save to backend via PortfolioService
     console.log('🔄 Calling saveSkillsToBackend...');
@@ -1012,11 +1118,11 @@ openNewProjectModal() {
   }
 
   removeSkill(skill: string) {
-    if (this.user && this.user.skills) {
-      const index = this.user.skills.indexOf(skill);
+    if (this.currentProfile && this.currentProfile.portfolio?.skills) {
+      const index = this.currentProfile.portfolio.skills.indexOf(skill);
       if (index > -1) {
         // Remove the skill
-        this.user.skills.splice(index, 1);
+        this.currentProfile.portfolio.skills.splice(index, 1);
         
         // Save to backend via PortfolioService
         this.saveSkillsToBackend();
@@ -1025,21 +1131,21 @@ openNewProjectModal() {
   }
 
   saveSkillsToBackend() {
-    if (!this.user) {
-      console.error('No user found. Cannot save skills.');
-      alert('User not found. Please refresh the page and try again.');
+    if (!this.currentProfile) {
+      console.error('No currentProfile found. Cannot save skills.');
+      alert('User data not found. Please refresh the page.');
       return;
     }
 
     console.log('🔄 Starting skills save process...');
-    console.log('👤 User data:', this.user);
+    console.log('👤 Current profile data:', this.currentProfile);
     console.log('💼 Portfolio ID:', this.portfolioId);
-    console.log('🎯 Skills to save:', this.user.skills);
+    console.log('🎯 Skills to save:', this.currentProfile.portfolio?.skills);
 
     // Prepare portfolio data for backend
     const portfolioData = {
-      skills: this.user.skills || [],
-      designation: this.user.designation || 'Developer',
+      skills: this.currentProfile.portfolio?.skills || [],
+      designation: this.currentProfile.designation || 'Developer',
       projects: (this.projects || []).map(p => ({
         projectName: p.title || '',
         description: p.description || '',
@@ -1064,10 +1170,10 @@ openNewProjectModal() {
   }
 
   actualSaveToBackend(portfolioData: any) {
-    const employeeId = (this.user as any)?.employeeId;
+    const employeeId = this.currentProfile?.employeeId;
     
     if (!employeeId) {
-      console.error('❌ No employeeId found');
+      console.error('❌ No employeeId found in currentProfile');
       alert('Employee ID not found. Please refresh the page.');
       return;
     }
@@ -1189,33 +1295,19 @@ loadPortfolio(employeeId: number): Promise<void> {
           console.log('Current user before skills update:', this.user);
           console.log('Portfolio data:', portfolio);
 
-  // Load skills from different possible locations
-  const newSkills = portfolio?.skills || 
-                   portfolio?.portfolio?.skills || 
-                   [];
+  // Load skills from portfolio structure (clean approach)
+  const newSkills = portfolio?.skills || [];
   
-  // Load summary from different possible locations (localStorage first for latest value)
-  const currentUser = this.auth.getLoggedInUser();
-  const newSummary = currentUser?.portfolio?.summary ||               // localStorage portfolio.summary (latest)
-                    currentUser?.summary ||                           // localStorage summary (fallback)
-                    portfolio?.summary || 
-                    portfolio?.portfolio?.summary || 
-                    '';
+  // Load summary from portfolio structure (clean approach)
+  const newSummary = portfolio?.summary || '';
   
-  console.log('🔍 Summary loading debug:');
-  console.log('  - localStorage portfolio.summary:', currentUser?.portfolio?.summary);
-  console.log('  - localStorage summary:', currentUser?.summary);
-  console.log('  - portfolio summary:', portfolio?.summary);
-  console.log('  - portfolio.portfolio summary:', portfolio?.portfolio?.summary);
-  console.log('  - final summary:', newSummary);
-  
-  console.log('Final skills to load:', newSkills);
-  console.log('Final summary to load:', newSummary);
+  console.log('� Loading portfolio data:');
+  console.log('  - Skills from portfolio:', newSkills);
+  console.log('  - Summary from portfolio:', newSummary);
   
   this.user = {
     ...this.user,
-    skills: newSkills,
-    summary: newSummary
+    portfolio: portfolio
   };
 
   console.log('User after skills update:', this.user);
@@ -1254,6 +1346,82 @@ loadPortfolio(employeeId: number): Promise<void> {
   });
 }
 
+  // Show the selected employee's portfolio (existing behavior)
+  viewEmployeePortfolio(employee: any) {
+    if (!employee || !employee.employeeId) {
+      alert('Cannot view portfolio: Employee ID not found');
+      return;
+    }
+
+    this.router.navigate(['/portfolio'], {
+      queryParams: { employeeId: employee.employeeId }
+    });
+
+    console.log('Navigating to portfolio for employee:', employee.firstName, employee.lastName, 'ID:', employee.employeeId);
+  }
+
+  // Show the selected employee's profile in HR area
+  viewEmployeeProfile(employee: any) {
+    if (!employee || !employee.employeeId) {
+      alert('Cannot view profile: Employee ID not found');
+      return;
+    }
+
+    console.log('Loading profile for employee:', employee);
+
+    // Load complete employee data including portfolio
+    this.employeeService.getByEmployeeId(employee.employeeId).subscribe({
+      next: (employeeData: any) => {
+        this.selectedEmployee = employeeData;
+        console.log('🎯 Complete employee data loaded for profile:', employeeData);
+        console.log('🔍 selectedEmployee set in viewEmployeeProfile:', {
+          firstName: employeeData?.firstName,
+          lastName: employeeData?.lastName,
+          employeeId: employeeData?.employeeId,
+          hasPortfolio: !!employeeData?.portfolio
+        });
+        
+        // Load projects for this employee immediately
+        this.loadProjects(employeeData.employeeId);
+        
+        // Force immediate UI update
+        this.cdr.detectChanges();
+        
+        // Additional safety net - run change detection after current cycle
+        setTimeout(() => {
+          this.cdr.detectChanges();
+          console.log('🔄 Forced change detection in setTimeout for viewEmployeeProfile');
+        }, 0);
+
+        // Load the employee's portfolio data
+        if (employeeData.employeeId) {
+          this.portfolioService.getPortfolio(employeeData.employeeId).subscribe({
+            next: (portfolioData: any) => {
+              // Merge portfolio data into selected employee
+              this.selectedEmployee.portfolio = portfolioData;
+              console.log('Portfolio data loaded for employee profile:', portfolioData);
+              this.cdr.detectChanges(); // Force UI update
+            },
+            error: (err) => {
+              console.error('Failed to load portfolio for employee profile:', err);
+              // Still show profile even if portfolio fails to load
+            }
+          });
+        }
+
+        // Keep URL updated so refresh/links work
+        this.router.navigate(['/profile'], {
+          queryParams: { employeeId: employee.employeeId },
+          queryParamsHandling: 'merge'
+        });
+      },
+      error: (err) => {
+        console.error('Failed to load employee data for profile:', err);
+        alert('Failed to load employee profile');
+      }
+    });
+  }
+
   ngOnDestroy() {
     if (this.projectsSub) {
       this.projectsSub.unsubscribe();
@@ -1263,42 +1431,39 @@ loadPortfolio(employeeId: number): Promise<void> {
   }
 
   onEditProjectImageSelected(event: any) {
-  const file = event.target.files[0];
+    const file = event.target.files[0];
 
-  if (file) {
+    if (file) {
+      // 1️⃣ store file for backend upload
+      this.selectedFile = file;
 
-    // 1️⃣ store file for backend upload
-    this.selectedFile = file;
+      // 2️⃣ show preview immediately
+      const reader = new FileReader();
 
-    // 2️⃣ show preview immediately
-    const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.editProject.image = e.target.result;
+      };
 
-    reader.onload = (e: any) => {
-      this.editProject.image = e.target.result;
-    };
-
-    reader.readAsDataURL(file);
+      reader.readAsDataURL(file);
+    }
   }
-}
 
-// Mobile menu toggle
-toggleMobileMenu() {
-  this.mobileMenuOpen = !this.mobileMenuOpen;
-}
+  // Mobile menu toggle
+  toggleMobileMenu() {
+    this.mobileMenuOpen = !this.mobileMenuOpen;
+  }
 
-get filteredEmployees() {
-  return this.employees.filter(emp => {
+  get filteredEmployees() {
+    return this.employees.filter(emp => {
+      const matchEmployeeType =
+        !this.employeeTypeFilter ||
+        emp.employeeType?.toLowerCase() === this.employeeTypeFilter.toLowerCase();
 
-    const matchEmployeeType =
-      !this.employeeTypeFilter ||
-      emp.employeeType?.toLowerCase() === this.employeeTypeFilter.toLowerCase();
+      const matchDesignation =
+        !this.designationFilter ||
+        emp.designation?.toLowerCase() === this.designationFilter.toLowerCase();
 
-    const matchDesignation =
-      !this.designationFilter ||
-      emp.designation?.toLowerCase() === this.designationFilter.toLowerCase();
-
-    return matchEmployeeType && matchDesignation;
-  });
-}
-
+      return matchEmployeeType && matchDesignation;
+    });
+  }
 }

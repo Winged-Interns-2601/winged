@@ -8,19 +8,19 @@ import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
 
-  // Default route - redirect to login
+
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 
   { path: 'login', component: LoginComponent },
 
-  // USER/Portfolio
+
   {
     path: 'portfolio',
     component: PortfolioComponent,
     canActivate: [AuthGuard]
   },
 
-  // HR
+
   {
     path: 'profile',
     component: ProfileComponent,
@@ -28,7 +28,7 @@ export const routes: Routes = [
     data: { role: 'HR' }
   },
 
-  // ADMIN
+
   {
     path: 'admin',
     component: AdminComponent,

@@ -1,11 +1,12 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { NgFor, NgIf } from "@angular/common";
 import { AuthService } from '../../services/auth.service';
 import { IsLoggedService } from '../../services/is-logged.service';
 import { ProjectsService, Project } from '../../services/projects.service';
 import { ProjectService } from '../../services/project.service';
 import { PortfolioService } from '../../services/portfolio.service';
+import { EmployeeService } from '../../services/employee.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -36,10 +37,12 @@ export class PortfolioComponent implements OnInit, OnDestroy {
   constructor(
     private auth: AuthService,
     private router: Router,
+    private route: ActivatedRoute,
     private isLoggedService: IsLoggedService,
     private projectsService: ProjectsService,
     private projectService: ProjectService,
-    private portfolioService: PortfolioService
+    private portfolioService: PortfolioService,
+    private employeeService: EmployeeService
   ) {}
 
   /* ---------------- LOAD PROJECTS ---------------- */
@@ -123,11 +126,46 @@ ngOnInit() {
 
   this.user = backendUser;
 
-  const employeeId = Number(backendUser.employeeId);
+  // Check for employeeId query parameter first
+  this.route.queryParams.subscribe(params => {
+    const queryEmployeeId = Number(params['employeeId']);
+    
+    let targetEmployeeId: number;
+    
+    if (queryEmployeeId && !isNaN(queryEmployeeId)) {
+      // Use query parameter employeeId
+      targetEmployeeId = queryEmployeeId;
+      console.log('Using query parameter employeeId:', targetEmployeeId);
+      
+      // Load the specific employee's data
+      this.employeeService.getByEmployeeId(queryEmployeeId).subscribe({
+        next: (employeeData: any) => {
+          this.user = employeeData;
+          console.log('Loaded employee data for portfolio:', employeeData);
+          this.loadPortfolioAndProjects(targetEmployeeId);
+        },
+        error: (err) => {
+          console.error('Failed to load employee data:', err);
+          // Fallback to logged-in user
+          this.user = backendUser;
+          targetEmployeeId = Number(backendUser.employeeId);
+          this.loadPortfolioAndProjects(targetEmployeeId);
+        }
+      });
+    } else {
+      // Use logged-in user's employeeId
+      targetEmployeeId = Number(backendUser.employeeId);
+      console.log('Using logged-in user employeeId:', targetEmployeeId);
+      this.loadPortfolioAndProjects(targetEmployeeId);
+    }
+  });
+}
 
+loadPortfolioAndProjects(employeeId: number) {
   // ⭐ handle missing employeeId (IMPORTANT)
   if (!employeeId || isNaN(employeeId)) {
     console.warn('Invalid employeeId:', employeeId);
+    this.loading = false;
     return; // stop API calls safely
   }
 
@@ -140,8 +178,7 @@ ngOnInit() {
   this.loadPortfolio(employeeId);
   this.loadProjects(employeeId);
 
-  console.log("Logged user:", backendUser);
-console.log("EmployeeId:", backendUser?.employeeId);
+  console.log("Loading portfolio for employeeId:", employeeId);
 }
 
   /* ---------------- DESTROY ---------------- */

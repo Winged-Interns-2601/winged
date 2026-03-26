@@ -29,7 +29,14 @@ private API = `${environment.apiUrl}/portfolio`;
   return this.http.delete(`${this.API}/delete/${employeeId}`);
 }
 
-  updatePortfolio(portfolioId: number, portfolio: any): Observable<any> {
-  return this.http.patch(`${this.API}/update/${portfolioId}`, portfolio);
+updatePortfolio(portfolioId: number, portfolio: any): Observable<any> {
+
+  const token = localStorage.getItem('TOKEN');
+
+  return this.http.patch(`${this.API}/update/${portfolioId}`, portfolio, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
 }
 }
