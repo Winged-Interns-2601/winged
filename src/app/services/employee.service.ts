@@ -13,6 +13,26 @@ export class EmployeeService {
     return this.http.post(`${this.API}/create-user`, data);
   }
 
+  createEmployeeWithImage(employeeData: any, image: File, headers?: any) {
+    const formData = new FormData();
+    
+    // Add employee data as JSON
+    formData.append('employee', new Blob([JSON.stringify(employeeData)], {
+      type: 'application/json'
+    }));
+    
+    // Add image file
+    formData.append('image', image);
+    
+    // 🔥 DEBUG: Use provided headers or default
+    const options = headers ? { headers } : {};
+    
+    console.log('🔍 DEBUG - FormData created:', formData);
+    console.log('🔍 DEBUG - Request options:', options);
+    
+    return this.http.post(`${this.API}/create-user`, formData, options);
+  }
+
   getAllUsers() {
     return this.http.get<any[]>(`${this.API}/all-users`);
   }

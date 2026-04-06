@@ -30,3 +30,8 @@
 .input::placeholder {
   color: #6b7280;
 }
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  scrollbar-color: transparent transparent;
+}

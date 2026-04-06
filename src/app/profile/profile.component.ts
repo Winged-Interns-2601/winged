@@ -8,6 +8,7 @@ import { PortfolioService } from '../services/portfolio.service';
 import { ProjectsService } from '../services/projects.service';
 import { ProjectService } from '../services/project.service';
 import { EmployeeService } from '../services/employee.service';
+import { HttpClient } from '@angular/common/http';
 import type { Project } from '../services/projects.service';
 import { Subscription } from 'rxjs';
 import { skip, take } from 'rxjs/operators';
@@ -29,7 +30,11 @@ showEditModal: boolean = false;
 editingEmployee: any = null;
   currentStep = 1;
   
+  selectedImage: File | null = null;
+  imagePreview: string | null = null;
+  
   errorMessage = '';
+  successMessage = '';
 
 
       employeeForm = {
@@ -70,6 +75,17 @@ editingEmployee: any = null;
   }>
 }
 
+  // user: any;
+  // portfolio: any;
+
+  // get portfolioSummary(): string {
+  //   return this.user?.summary ||                           // Check user object first (from profile component)
+  //          this.portfolio?.summary || 
+  //          this.portfolio?.portfolio?.summary || 
+  //          this.portfolio?.data?.summary || 
+  //          '';
+  // }
+
 };
   
 openAddEmployeeModal() {
@@ -107,6 +123,7 @@ openAddEmployeeModal() {
   };
 }
 
+
 closeModal(){
   this.showEditModal = false;
   this.editingEmployee = null;
@@ -143,13 +160,10 @@ closeModal(){
 
 addEmployee() {
 
-  if (!this.employeeForm.email || !this.employeeForm.password) {
-    alert("Email & Password required");
-    return;
-  }
+  this.errorMessage = '';
 
   const payload = {
-    // employeeId: Date.now(),
+    employeeId: Date.now(),
     firstName: this.employeeForm.firstName,
     middleName: this.employeeForm.middleName,
     lastName: this.employeeForm.lastName,
@@ -179,22 +193,131 @@ addEmployee() {
     }
   };
 
-  console.log("Payload:", payload);
+  console.log('📤 Registration payload:', payload);
 
-this.auth.registerBackend(payload).subscribe({
-  next: (res) => {
+  this.auth.registerBackend(payload).subscribe({
 
-    console.log("Backend Response:", res); // ⭐ IMPORTANT
+    next: (response) => {
+      console.log('✅ Registration successful:', response);
+      this.successMessage = "Employee registered successfully";
 
-    alert("Employee Added ✅");
+      this.auth.loginBackend(payload.email, payload.password)
+        .subscribe((res:any) => {
 
-  },
-  error: (err) => {
-    console.error(err);
-  }
-});
-  console.log("PAN:", this.employeeForm.panNo);
+          localStorage.setItem("TOKEN", res.token);
+          console.log('🔑 Registration token stored:', res.token);
+          console.log('🔑 Registration token verification:', localStorage.getItem("TOKEN"));
+          
+          // ⭐ SAVE FULL EMPLOYEE DATA (VERY IMPORTANT)
+          localStorage.setItem("LOGGED_IN_USER", JSON.stringify(res.employee));
+
+          // ⭐ CREATE PORTFOLIO AFTER REGISTRATION IF PROJECTS/SKILLS EXIST
+          if (this.employeeForm.portfolio.projects.length > 0 || this.employeeForm.portfolio.skills.length > 0) {
+            const employeeId = res.employee?.employeeId;
+            
+            console.log('🆔 Employee ID from login:', employeeId);
+            
+            if (!employeeId) {
+              console.error('❌ Employee ID missing in login response');
+              console.error('📥 Full login response:', res);
+              return;
+            }
+            
+            this.createPortfolioAfterRegistration(employeeId);
+          } else {
+            alert("Employee Added ✅");
+            this.cancelAddEmployee(); // Close modal and reset form
+          }
+        });
+    },
+
+    error: (err) => {
+      console.log("❌ Registration error:", err);
+      console.log("DESIGNATION =", this.employeeForm.designation);
+      console.log("FULL ERROR:", err);
+      console.log("BACKEND MESSAGE:", err.error);
+      this.errorMessage = JSON.stringify(err.error);
+      alert("Failed to register employee: " + (err.error?.message || err.message || err.status));
+    }
+  });
 }
+
+  // ⭐ CREATE PORTFOLIO AFTER REGISTRATION
+  createPortfolioAfterRegistration(employeeId: number) {
+    console.log('🎯 Projects from registration:', this.employeeForm.portfolio.projects);
+    
+    // NOTE: Portfolio already created in registration payload
+    // This method now only handles individual project creation
+    console.log('⭐ Skipping portfolio creation (already done in registration)');
+    console.log('� Creating only individual projects...');
+    
+    // Create projects individually (like profile component does)
+    this.createProjectsIndividually(employeeId);
+  }
+
+  // Create projects individually after registration
+  createProjectsIndividually(employeeId: number) {
+    const projects = this.employeeForm.portfolio.projects;
+    
+    if (projects.length === 0) {
+      console.log('📋 No projects to create individually');
+      alert("Employee Added ✅");
+      this.cancelAddEmployee(); // Close modal and reset form
+      return;
+    }
+
+    console.log('🔄 Creating', projects.length, 'projects individually for employee:', employeeId);
+    
+    let completedProjects = 0;
+    const totalProjects = projects.length;
+
+    projects.forEach((project: any, index: number) => {
+      console.log(`📝 Creating project ${index + 1}/${totalProjects}:`, project);
+      
+      this.projectsService.addProject(
+        employeeId,
+        project.projectName || project.title,
+        project.techStack || project.tech,
+        project.image ? this.base64ToFile(project.image) : undefined,
+        project.summary
+      ).pipe(take(1)).subscribe({
+        next: (createdProject) => {
+          console.log(`✅ Project ${index + 1} created:`, createdProject);
+          completedProjects++;
+          
+          if (completedProjects === totalProjects) {
+            console.log('🎉 All projects created successfully');
+            alert("Employee Added ✅");
+            this.cancelAddEmployee(); // Close modal and reset form
+          }
+        },
+        error: (err) => {
+          console.error(`❌ Failed to create project ${index + 1}:`, err);
+          completedProjects++;
+          
+          if (completedProjects === totalProjects) {
+            console.log('⚠️ Projects creation completed with some errors');
+            alert("Employee Added ✅");
+            this.cancelAddEmployee(); // Close modal and reset form
+          }
+        }
+      });
+    });
+  }
+
+  // Helper method to convert base64 to File
+  base64ToFile(base64Data: string, filename: string = 'project.jpg'): File {
+    const byteString = atob(base64Data.split(',')[1]);
+    const mimeString = base64Data.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    
+    return new File([ab], filename, { type: mimeString });
+  }
   projects: Project[] = []; // single source of truth for projects (subscribed from ProjectsService)
   private projectsSub: Subscription | null = null;
   user: PortfolioUser | null = null;
@@ -229,7 +352,8 @@ this.auth.registerBackend(payload).subscribe({
     private projectsService: ProjectsService,
     private projectService: ProjectService,
     private employeeService: EmployeeService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private http: HttpClient  // Add direct HTTP client
   ) {}
 
   // Add a getter to ensure skills are always available
@@ -243,15 +367,15 @@ this.auth.registerBackend(payload).subscribe({
 
   get activeProfile() {
     const result = this.selectedEmployee || this.user;
-    console.log('🔍 activeProfile called:', {
-      hasSelectedEmployee: !!this.selectedEmployee,
-      hasUser: !!this.user,
-      selectedEmployeeId: this.selectedEmployee?.employeeId,
-      userId: this.user?.employeeId,
-      resultFirstName: result?.firstName,
-      resultLastName: result?.lastName,
-      resultId: result?.employeeId
-    });
+    // console.log('🔍 activeProfile called:', {
+    //   hasSelectedEmployee: !!this.selectedEmployee,
+    //   hasUser: !!this.user,
+    //   selectedEmployeeId: this.selectedEmployee?.employeeId,
+    //   userId: this.user?.employeeId,
+    //   resultFirstName: result?.firstName,
+    //   resultLastName: result?.lastName,
+    //   resultId: result?.employeeId
+    // });
     return result;
   }
 
@@ -480,7 +604,7 @@ ngOnInit() {
 
   // Load projects based on current profile (selected employee or logged-in user)
   const empId = this.currentProfile?.employeeId || Number(backendUser.employeeId);
-  console.log('🔄 Loading projects for employee:', empId, '(currentProfile:', this.currentProfile?.firstName || 'logged-in user', ')');
+  // console.log('🔄 Loading projects for employee:', empId, '(currentProfile:', this.currentProfile?.firstName || 'logged-in user', ')');
   this.loadProjects(empId);
 }
 
@@ -1021,11 +1145,29 @@ openNewProjectModal() {
   saveSummary() {
     if (!this.currentProfile) return;
 
-    // Use same field as register page: currentProfile.portfolio.summary
+    // Update the actual data sources (user or selectedEmployee), not just the getter result
+    if (this.selectedEmployee) {
+      if (!this.selectedEmployee.portfolio) {
+        this.selectedEmployee.portfolio = {};
+      }
+      this.selectedEmployee.portfolio.summary = this.newSummary;
+      this.selectedEmployee.summary = this.newSummary;
+    }
+    
+    if (this.user) {
+      if (!this.user.portfolio) {
+        this.user.portfolio = {};
+      }
+      this.user.portfolio.summary = this.newSummary;
+      this.user.summary = this.newSummary;
+    }
+
+    // Also update currentProfile for immediate UI update
     if (!this.currentProfile.portfolio) {
       this.currentProfile.portfolio = {};
     }
     this.currentProfile.portfolio.summary = this.newSummary;
+    this.currentProfile.summary = this.newSummary;
 
     // Save to localStorage for immediate persistence
     const currentUser = this.auth.getLoggedInUser();
@@ -1037,7 +1179,7 @@ openNewProjectModal() {
           summary: this.newSummary
         },
         // Also update the top-level summary for compatibility
-        summary: this.currentProfile.summary
+        summary: this.newSummary
       };
       localStorage.setItem('LOGGED_IN_USER', JSON.stringify(updatedUser));
       console.log('📝 Summary saved to localStorage (portfolio.summary):', this.newSummary);
@@ -1237,7 +1379,6 @@ openNewProjectModal() {
       this.auth.updateUserSkills(this.user.email, this.user.skills || []);
       console.log('💾 Skills saved to localStorage as fallback');
     }
-    this.cancelAddSkill();
   }
 
   cancelAddSkill() {
@@ -1246,6 +1387,65 @@ openNewProjectModal() {
     this.newSkill = '';
     console.log('🔒 Skill modal hidden');
   }
+
+  cancelAddEmployee() {
+    this.showEmployeeModal = false;
+    this.currentStep = 1;
+    
+    // Reset image
+    this.selectedImage = null;
+    this.imagePreview = null;
+    
+    // Reset form
+    this.employeeForm = {
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      phone: '',
+      address: {
+        street: '',
+        city: '',
+        state: '',
+        pinCode: '',
+        country: ''
+      },
+      joiningDate: '',
+      exitDate: '',
+      aadharNo: '',
+      panNo: '',
+      employeeType: '',
+      designation: '',
+      portfolio: {
+        designation: '',
+        skills: [],
+        projects: [],
+        summary: ''
+      }
+    };
+  }
+
+  onImageSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedImage = file;
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.imagePreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removeImage() {
+    this.selectedImage = null;
+    this.imagePreview = null;
+  }
+
+
 
   // Single portfolio loader — DB is the source of truth for projects/skills
 loadPortfolio(employeeId: number): Promise<void> {
@@ -1307,7 +1507,8 @@ loadPortfolio(employeeId: number): Promise<void> {
   
   this.user = {
     ...this.user,
-    portfolio: portfolio
+    portfolio: portfolio,
+    summary: portfolio?.summary || ''   // ⭐ ADD THIS LINE
   };
 
   console.log('User after skills update:', this.user);
@@ -1466,4 +1667,22 @@ loadPortfolio(employeeId: number): Promise<void> {
       return matchEmployeeType && matchDesignation;
     });
   }
+
+  get portfolioSummary(): string {
+    return this.currentProfile?.portfolio?.summary || 
+           this.currentProfile?.summary || 
+           '';
+  }
+
+  updateSkillsFromString(skillsString: string) {
+  if (!this.editForm.portfolio) {
+    this.editForm.portfolio = {};
+  }
+  
+  // Convert comma-separated string to array
+  this.editForm.portfolio.skills = skillsString
+    .split(',')
+    .map(skill => skill.trim())
+    .filter(skill => skill.length > 0);
+}
 }

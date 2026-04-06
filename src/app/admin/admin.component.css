@@ -4,3 +4,7 @@
 .employee-row {
   gap: 4rem !important;
 }
+
+.scrollbar-hide {
+  scrollbar-width: none;
+}
